@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Downloader</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================
+           RESET & BASE STYLES
+           ============================================ */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Warna Utama */
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #0f1629;
+            --bg-card: rgba(15, 22, 41, 0.6);
+            --blue-primary: #3b82f6;
+            --blue-secondary: #60a5fa;
+            --blue-glow: #2563eb;
+            --blue-dark: #1e40af;
+            --blue-neon: #00b4d8;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: rgba(59, 130, 246, 0.15);
+            --border-hover: rgba(59, 130, 246, 0.4);
+
+            /* Font */
+            --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+            /* Transitions */
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============================================
+           PRELOADER
+           ============================================ */
+        .preloader {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 24px;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        .preloader.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .preloader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--blue-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .preloader-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: pulse-text 1.5s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse-text {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* ============================================
+           ANIMATED BACKGROUND
+           ============================================ */
+        .bg-animated {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        /* Gradient orbs */
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            animation: float-orb 20s ease-in-out infinite;
+        }
+
+        .bg-orb:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--blue-glow), transparent 70%);
+            top: -200px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .bg-orb:nth-child(2) {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--blue-neon), transparent 70%);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -7s;
+            animation-duration: 25s;
+        }
+
+        .bg-orb:nth-child(3) {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, #8b5cf6, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -14s;
+            animation-duration: 30s;
+            opacity: 0.15;
+        }
+
+        @keyframes float-orb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -80px) scale(1.1); }
+            50% { transform: translate(-30px, 60px) scale(0.9); }
+            75% { transform: translate(70px, 40px) scale(1.05); }
+        }
+
+        /* Grid pattern overlay */
+        .bg-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* Particle canvas */
+        #particleCanvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ============================================
+           MAIN CONTAINER
+           ============================================ */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ============================================
+           HEADER / NAVBAR
+           ============================================ */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 16px 0;
+            transition: var(--transition-normal);
+        }
+
+        .header.scrolled {
+            background: rgba(10, 14, 26, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 0;
+        }
+
+        .header-inner {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-neon));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+            transition: var(--transition-normal);
+        }
+
+        .logo:hover .logo-icon {
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+            transform: scale(1.05);
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: -0.3px;
+        }
+
+        .logo-text span {
+            background: linear-gradient(135deg, var(--blue-secondary), var(--blue-neon));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-badge {
+            padding: 6px 14px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--blue-secondary);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* ============================================
+           HERO SECTION
+           ============================================ */
+        .hero {
+            padding: 140px 0 60px;
+            text-align: center;
+        }
+
+        .hero-content {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 0.8s ease forwards;
+            animation-delay: 0.5s;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            font-size: 13px;
+            color: var(--blue-secondary);
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .hero-badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--blue-primary);
+            border-radius: 50%;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            50% { opacity: 0.8; box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+        }
+
+        .hero h1 {
+            font-size: clamp(32px, 6vw, 56px);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -1.5px;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 .gradient-text {
+            background: linear-gradient(135deg, var(--blue-secondary) 0%, var(--blue-neon) 50%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 17px;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ============================================
+           GLASS CARD (Glassmorphism)
+           ============================================ */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 24px;
+            transition: var(--transition-normal);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .glass-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .glass-card:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 8px 40px rgba(59, 130, 246, 0.08);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ============================================
+           CODE BLOCK (VSCode-like)
+           ============================================ */
+        .code-editor {
+            background: #0d1117;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: var(--transition-normal);
+        }
+
+        .code-editor:hover {
+            border-color: rgba(59, 130, 246, 0.25);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.05);
+        }
+
+        /* Editor top bar */
+        .editor-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .editor-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .editor-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: var(--transition-fast);
+        }
+
+        .editor-dot:hover { transform: scale(1.3); }
+        .editor-dot.red { background: #ff5f57; }
+        .editor-dot.yellow { background: #febc2e; }
+        .editor-dot.green { background: #28c840; }
+
+        .editor-filename {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-copy {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            color: var(--blue-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            font-family: var(--font-primary);
+        }
+
+        .btn-copy:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--blue-primary);
+            color: var(--text-primary);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .btn-copy:active {
+            transform: translateY(0) scale(0.97);
+        }
+
+        .btn-copy.copied {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #34d399;
+        }
+
+        /* Code content */
+        .code-body {
+            padding: 20px;
+            overflow-x: auto;
+            counter-reset: line;
+        }
+
+        .code-body::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .code-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .code-body::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 3px;
+        }
+
+        .code-body pre {
+            margin: 0;
+            font-family: var(--font-mono);
+            font-size: 13.5px;
+            line-height: 1.7;
+            color: #e6edf3;
+            tab-size: 2;
+        }
+
+        .code-line {
+            display: block;
+            padding: 0 4px;
+            border-radius: 4px;
+            transition: background var(--transition-fast);
+        }
+
+        .code-line:hover {
+            background: rgba(59, 130, 246, 0.06);
+        }
+
+        /* Syntax highlighting */
+        .token-keyword { color: #ff7b72; }
+        .token-string { color: #a5d6ff; }
+        .token-comment { color: #8b949e; font-style: italic; }
+        .token-function { color: #d2a8ff; }
+        .token-number { color: #79c0ff; }
+        .token-operator { color: #ff7b72; }
+        .token-variable { color: #ffa657; }
+        .token-property { color: #7ee787; }
+        .token-bracket { color: #e6edf3; }
+        .token-punctuation { color: #8b949e; }
+
+        /* ============================================
+           DOWNLOAD SECTION
+           ============================================ */
+        .download-section {
+            text-align: center;
+            padding: 8px 0;
+        }
+
+        .download-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .info-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .info-chip svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 36px;
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-glow));
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            font-family: var(--font-primary);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-download::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
+        }
+
+        .btn-download:hover::before {
+            transform: translateX(100%);
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-download:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-download svg {
+            width: 20px;
+            height: 20px;
+            transition: transform var(--transition-normal);
+        }
+
+        .btn-download:hover svg {
+            transform: translateY(2px);
+        }
+
+        .btn-download.downloading {
+            pointer-events: none;
+        }
+
+        .rating-panel {
+            margin-top: 28px;
+            padding-top: 22px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .rating-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .rating-stars {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .rating-star {
+            width: 46px;
+            height: 46px;
+            border: 1px solid rgba(59, 130, 246, 0.18);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            color: #fbbf24;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            transition: var(--transition-normal);
+        }
+
+        .rating-star:hover {
+            transform: translateY(-2px);
+            border-color: rgba(251, 191, 36, 0.45);
+            box-shadow: 0 10px 25px rgba(251, 191, 36, 0.12);
+        }
+
+        .rating-star.active {
+            background: rgba(251, 191, 36, 0.12);
+            border-color: rgba(251, 191, 36, 0.4);
+        }
+
+        .rating-star:disabled {
+            cursor: not-allowed;
+            opacity: 0.72;
+        }
+
+        .rating-summary {
+            margin-top: 14px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           TOAST NOTIFICATION
+           ============================================ */
+        .toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px;
+            background: rgba(15, 22, 41, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            min-width: 250px;
+        }
+
+        .toast.toast-success {
+            border-left: 3px solid #10b981;
+        }
+
+        .toast.toast-info {
+            border-left: 3px solid var(--blue-primary);
+        }
+
+        .toast-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .toast-success .toast-icon {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .toast-info .toast-icon {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--blue-secondary);
+        }
+
+        .toast.removing {
+            animation: toastOut 0.3s ease forwards;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(40px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        @keyframes toastOut {
+            to {
+                opacity: 0;
+                transform: translateX(40px) scale(0.9);
+            }
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            margin-top: 40px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer a {
+            color: var(--blue-secondary);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+        }
+
+        .footer a:hover {
+            color: var(--text-primary);
+        }
+
+        /* ============================================
+           STATS SECTION
+           ============================================ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            transition: var(--transition-normal);
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--blue-secondary), var(--blue-neon));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 640px) {
+            .glass-card {
+                padding: 20px;
+                border-radius: 16px;
+            }
+
+            .code-body {
+                padding: 14px;
+            }
+
+            .code-body pre {
+                font-size: 12px;
+            }
+
+            .hero h1 {
+                font-size: 28px;
+            }
+
+            .hero p {
+                font-size: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .header-badge {
+                display: none;
+            }
+
+            .toast-container {
+                left: 16px;
+                right: 16px;
+                bottom: 16px;
+            }
+
+            .toast {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .btn-download {
+                padding: 14px 28px;
+                font-size: 14px;
+            }
+
+            .editor-filename {
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            .glass-card {
+                padding: 16px;
+            }
+
+            .code-body pre {
+                font-size: 11px;
+            }
+        }
+
+        /* ============================================
+           UTILITY ANIMATIONS
+           ============================================ */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Cursor blink for code */
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .cursor-blink {
+            animation: blink 1s step-end infinite;
+        }
+
+        /* Ripple effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(0);
+            animation: ripple-anim 0.6s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-anim {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== PRELOADER ==================== -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-spinner"></div>
+        <div class="preloader-text">Loading</div>
+    </div>
+
+    <!-- ==================== ANIMATED BACKGROUND ==================== -->
+    <div class="bg-animated">
+        <div class="bg-orb"></div>
+        <div class="bg-orb"></div>
+        <div class="bg-orb"></div>
+        <div class="bg-grid"></div>
+        <canvas id="particleCanvas"></canvas>
+    </div>
+
+    <!-- ==================== HEADER ==================== -->
+    <header class="header" id="header">
+        <div class="header-inner">
+            <a href="#" class="logo">
+                <div class="logo-icon">⚡</div>
+                <div class="logo-text">Script <span>Downloader</span></div>
+            </a>
+            <div class="header-badge">v1.0.0</div>
+        </div>
+    </header>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main>
+        <div class="container">
+
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <span class="hero-badge-dot"></span>
+                        Ready to use
+                    </div>
+                    <h1>
+                        Download Script<br>
+                        <span class="gradient-text">Dalam Sekejap</span>
+                    </h1>
+                    <p>
+                        Salin atau unduh script favorit kamu dengan mudah. 
+                        Desain modern, cepat, dan siap pakai untuk project-mu.
+                    </p>
+
+                    <!-- Stats -->
+                    <div class="stats-grid fade-in" data-delay="200">
+                        <div class="stat-card">
+                            <div class="stat-number" id="statCopies">...</div>
+                            <div class="stat-label">Copies</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="statDownloads">...</div>
+                            <div class="stat-label">Downloads</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="statStars">...</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Code Block Section -->
+            <section class="glass-card" id="codeSection">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-icon">📝</div>
+                        <div>
+                            <div class="card-title" id="scriptTitle">Script Google Sheet</div>
+                            <div class="card-subtitle">Google Apps Script Preview</div>
+                        </div>
+                    </div>
+                    <div class="editor-actions">
+                        <button class="btn-copy" id="btnCopy" onclick="copyScript()">
+                            <svg id="copyIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span id="copyText">Copy</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- VSCode-like Code Editor -->
+                <div class="code-editor">
+                    <div class="editor-topbar">
+                        <div class="editor-dots">
+                            <div class="editor-dot red"></div>
+                            <div class="editor-dot yellow"></div>
+                            <div class="editor-dot green"></div>
+                        </div>
+                        <span class="editor-filename" id="scriptFileLabel">google_sheet.gs</span>
+                        <span style="font-size: 12px; color: var(--text-muted);">Google Apps Script</span>
+                    </div>
+                    <div class="code-body">
+                        <pre id="codeContent"><code><span class="code-line"><span class="token-comment">// 🚀 Simple Utility Script</span></span>
+<span class="code-line"><span class="token-comment">// Author: Script Downloader</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="token-keyword">class</span> <span class="token-function">ScriptDownloader</span> <span class="token-bracket">{</span></span>
+<span class="code-line">    <span class="token-function">constructor</span><span class="token-punctuation">(</span><span class="token-variable">name</span><span class="token-punctuation">)</span> <span class="token-bracket">{</span></span>
+<span class="code-line">        <span class="token-keyword">this</span>.<span class="token-property">name</span> = <span class="token-variable">name</span>;</span>
+<span class="code-line">        <span class="token-keyword">this</span>.<span class="token-property">version</span> = <span class="token-string">'1.0.0'</span>;</span>
+<span class="code-line">        <span class="token-keyword">this</span>.<span class="token-property">scripts</span> = <span class="token-keyword">new</span> <span class="token-function">Map</span><span class="token-punctuation">()</span>;</span>
+<span class="code-line">    <span class="token-bracket">}</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="token-keyword">async</span> <span class="token-function">download</span><span class="token-punctuation">(</span><span class="token-variable">scriptName</span><span class="token-punctuation">)</span> <span class="token-bracket">{</span></span>
+<span class="code-line">        <span class="token-keyword">const</span> <span class="token-variable">script</span> = <span class="token-keyword">this</span>.<span class="token-property">scripts</span>.<span class="token-function">get</span><span class="token-punctuation">(</span><span class="token-variable">scriptName</span><span class="token-punctuation">)</span>;</span>
+<span class="code-line">        <span class="token-keyword">if</span> <span class="token-punctuation">(</span>!<span class="token-variable">script</span><span class="token-punctuation">)</span> <span class="token-keyword">throw</span> <span class="token-keyword">new</span> <span class="token-function">Error</span><span class="token-punctuation">(</span><span class="token-string">'Not found'</span><span class="token-punctuation">)</span>;</span>
+<span class="code-line">        <span class="token-keyword">return</span> <span class="token-variable">script</span>;</span>
+<span class="code-line">    <span class="token-bracket">}</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="token-function">addScript</span><span class="token-punctuation">(</span><span class="token-variable">name</span>, <span class="token-variable">code</span><span class="token-punctuation">)</span> <span class="token-bracket">{</span></span>
+<span class="code-line">        <span class="token-keyword">this</span>.<span class="token-property">scripts</span>.<span class="token-function">set</span><span class="token-punctuation">(</span><span class="token-variable">name</span>, <span class="token-variable">code</span><span class="token-punctuation">)</span>;</span>
+<span class="code-line">        console.<span class="token-function">log</span><span class="token-punctuation">(</span><span class="token-string">`✅ Added: ${</span><span class="token-variable">name</span><span class="token-string">}`</span><span class="token-punctuation">)</span>;</span>
+<span class="code-line">    <span class="token-bracket">}</span></span>
+<span class="code-line"><span class="token-bracket">}</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="token-keyword">const</span> <span class="token-variable">app</span> = <span class="token-keyword">new</span> <span class="token-function">ScriptDownloader</span><span class="token-punctuation">(</span><span class="token-string">'MyApp'</span><span class="token-punctuation">)</span>;</span>
+<span class="code-line"><span class="token-variable">app</span>.<span class="token-function">addScript</span><span class="token-punctuation">(</span><span class="token-string">'utils'</span>, <span class="token-string">'console.log("Hello!")'</span><span class="token-punctuation">)</span>;</span></code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Download Section -->
+            <section class="glass-card" id="downloadSection">
+                <div class="download-section">
+                    <div class="card-title-group" style="justify-content: center; margin-bottom: 20px;">
+                        <div class="card-icon">💾</div>
+                        <div>
+                            <div class="card-title">Download File</div>
+                            <div class="card-subtitle">Klik tombol di bawah untuk mengunduh zip project</div>
+                        </div>
+                    </div>
+
+                    <div class="download-info">
+                        <div class="info-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            <span id="downloadFileName">p_ESP32_absensi.zip</span>
+                        </div>
+                        <div class="info-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+                            ZIP Archive
+                        </div>
+                        <div class="info-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                            Google Sheet + ESP32
+                        </div>
+                    </div>
+
+                    <button class="btn-download" id="btnDownload" onclick="downloadFile()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        <span id="downloadText">Download File</span>
+                    </button>
+
+                    <div class="rating-panel">
+                        <div class="rating-title">Kasih rating untuk script ini</div>
+                        <div class="rating-stars" id="ratingStars">
+                            <button class="rating-star" type="button" data-rating="1" aria-label="Rate 1 star">★</button>
+                            <button class="rating-star" type="button" data-rating="2" aria-label="Rate 2 stars">★</button>
+                            <button class="rating-star" type="button" data-rating="3" aria-label="Rate 3 stars">★</button>
+                            <button class="rating-star" type="button" data-rating="4" aria-label="Rate 4 stars">★</button>
+                            <button class="rating-star" type="button" data-rating="5" aria-label="Rate 5 stars">★</button>
+                        </div>
+                        <div class="rating-summary" id="ratingSummary">Mengambil rating dari server bot...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer fade-in">
+                <p>
+                    Dibuat dengan 💙 oleh <a href="#">Script Downloader</a> &mdash; © 2026
+                </p>
+            </footer>
+
+        </div>
+    </main>
+
+    <!-- ==================== TOAST CONTAINER ==================== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        const API_BASE_URL = window.SCRIPT_API_BASE_URL || 'http://127.0.0.1:8787';
+        const LOCAL_RATING_KEY = 'script_downloader_rating_v1';
+
+        /* ============================================
+           PRELOADER
+           ============================================ */
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('preloader').classList.add('hidden');
+                // Trigger fade-in animations
+                initScrollAnimations();
+                initRatingButtons();
+                loadWebStats();
+            }, 800);
+        });
+
+        /* ============================================
+           PARTICLE ANIMATION (Canvas)
+           ============================================ */
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouse = { x: null, y: null };
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Track mouse
+        document.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        // Particle class
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                // Mouse interaction
+                if (mouse.x !== null) {
+                    const dx = mouse.x - this.x;
+                    const dy = mouse.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 120) {
+                        this.x -= dx * 0.01;
+                        this.y -= dy * 0.01;
+                    }
+                }
+
+                // Wrap around edges
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(59, 130, 246, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        // Create particles
+        function initParticles() {
+            const count = Math.min(80, Math.floor(window.innerWidth / 15));
+            particles = [];
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+        initParticles();
+
+        // Draw connections between nearby particles
+        function drawConnections() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(59, 130, 246, ${0.06 * (1 - dist / 150)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        // Animation loop
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            drawConnections();
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        /* ============================================
+           HEADER SCROLL EFFECT
+           ============================================ */
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            const scrollY = window.scrollY;
+
+            if (scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+            lastScroll = scrollY;
+        });
+
+        /* ============================================
+           SCROLL ANIMATIONS (Intersection Observer)
+           ============================================ */
+        function initScrollAnimations() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const delay = entry.target.dataset.delay || 0;
+                        setTimeout(() => {
+                            entry.target.classList.add('visible');
+                        }, delay);
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            });
+
+            // Observe all fade-in elements and glass cards
+            document.querySelectorAll('.fade-in, .glass-card').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        /* ============================================
+           COPY SCRIPT FUNCTION
+           ============================================ */
+        // Script content (plain text version)
+        const scriptContent = `const SHEET_DATA_SISWA = "DataSiswa"; // Nama sheet data siswa
+const SHEET_PRESENSI = "PresensiSholat"; // Nama sheet presensi
+const SHEET_PENGATURAN = "Pengaturan"; // Nama sheet pengaturan waktu
+
+function doGet(e) { // Fungsi utama menerima request dari ESP32
+  const lock = LockService.getScriptLock(); // Mengambil lock agar tidak bentrok
+  lock.waitLock(30000); // Menunggu lock maksimal 30 detik
+
+  try {
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet(); // Ambil spreadsheet aktif
+    const siswaSheet = spreadsheet.getSheetByName(SHEET_DATA_SISWA); // Ambil sheet siswa
+    const presensiSheet = spreadsheet.getSheetByName(SHEET_PRESENSI); // Ambil sheet presensi
+    const pengaturanSheet = spreadsheet.getSheetByName(SHEET_PENGATURAN); // Ambil sheet pengaturan
+
+    if (!siswaSheet || !presensiSheet || !pengaturanSheet) { // Cek semua sheet ada
+      return jsonResponse({
+        ok: false,
+        message: "Sheet wajib belum lengkap. Pastikan DataSiswa, PresensiSholat, dan Pengaturan tersedia."
+      }); // Kirim error jika belum lengkap
+    }
+
+    const id = String((e.parameter.id || "")).trim(); // Ambil parameter id
+    const device = String((e.parameter.device || "ESP32-CAM")).trim(); // Ambil device (default ESP32-CAM)
+
+    if (!id) { // Jika id kosong
+      return jsonResponse({
+        ok: false,
+        message: "Parameter id wajib diisi."
+      }); // Kirim error
+    }
+
+    const now = new Date(); // Waktu sekarang
+    const timezone = spreadsheet.getSpreadsheetTimeZone() || "Asia/Jakarta"; // Ambil timezone
+    const tanggalKey = Utilities.formatDate(now, timezone, "yyyy-MM-dd"); // Format tanggal
+    const waktuText = Utilities.formatDate(now, timezone, "yyyy-MM-dd HH:mm:ss"); // Format waktu lengkap
+    const currentMinute = getCurrentMinute(now, timezone); // Hitung menit sekarang
+
+    const siswa = findSiswaById_(siswaSheet, id); // Cari siswa berdasarkan ID
+    if (!siswa) { // Jika tidak ditemukan
+      return jsonResponse({
+        ok: false,
+        id: id,
+        message: "ID tidak ditemukan di DataSiswa."
+      }); // Kirim error
+    }
+
+    const sesiInfo = resolveSesi_(pengaturanSheet, currentMinute); // Tentukan sesi
+    const existing = findExistingPresensi_(presensiSheet, tanggalKey, id, sesiInfo.sesi); // Cek sudah absen
+
+    if (existing) { // Jika sudah absen
+      return jsonResponse({
+        ok: false,
+        id: id,
+        nama: siswa.nama,
+        sesi: sesiInfo.sesi,
+        status: "Sudah Absen",
+        message: siswa.nama + " sudah tercatat untuk sesi " + sesiInfo.sesi + "."
+      }); // Kirim info sudah absen
+    }
+
+    const status = resolveStatus_(currentMinute, sesiInfo); // Tentukan status hadir/terlambat
+
+    presensiSheet.appendRow([ // Simpan ke sheet presensi
+      now, // Timestamp
+      tanggalKey, // Tanggal
+      id, // ID siswa
+      siswa.nama, // Nama
+      siswa.kelas, // Kelas
+      sesiInfo.sesi, // Sesi
+      status, // Status
+      device // Device
+    ]);
+
+    return jsonResponse({
+      ok: true,
+      id: id,
+      nama: siswa.nama,
+      kelas: siswa.kelas,
+      sesi: sesiInfo.sesi,
+      status: status,
+      waktu: waktuText,
+      device: device,
+      message: siswa.nama + " tercatat untuk sesi " + sesiInfo.sesi + " dengan status " + status + "."
+    }); // Kirim response sukses
+  } finally {
+    lock.releaseLock(); // Lepas lock
+  }
+}
+
+function findSiswaById_(sheet, id) { // Cari siswa berdasarkan ID
+  const values = sheet.getDataRange().getValues(); // Ambil semua data
+  for (let i = 1; i < values.length; i++) { // Loop mulai dari baris kedua
+    const rowId = String(values[i][0] || "").trim(); // Ambil ID
+    if (rowId === id) { // Jika cocok
+      return {
+        id: rowId,
+        nama: String(values[i][1] || "").trim(), // Ambil nama
+        kelas: String(values[i][2] || "").trim() // Ambil kelas
+      };
+    }
+  }
+  return null; // Tidak ditemukan
+}
+
+function resolveSesi_(sheet, currentMinute) { // Menentukan sesi sholat
+  const values = sheet.getDataRange().getValues(); // Ambil data pengaturan
+  for (let i = 1; i < values.length; i++) { // Loop data
+    const sesi = String(values[i][0] || "").trim(); // Nama sesi
+    const jamMulai = String(values[i][1] || "").trim(); // Jam mulai
+    const batasHadir = String(values[i][2] || "").trim(); // Batas hadir
+    const batasTerlambat = String(values[i][3] || "").trim(); // Batas terlambat
+
+    if (!sesi || !jamMulai || !batasHadir || !batasTerlambat) { // Validasi
+      continue; // Lewati jika tidak lengkap
+    }
+
+    const mulaiMinute = parseHourMinute_(jamMulai); // Konversi jam mulai
+    const hadirMinute = parseHourMinute_(batasHadir); // Konversi batas hadir
+    const terlambatMinute = parseHourMinute_(batasTerlambat); // Konversi batas terlambat
+
+    if (currentMinute >= mulaiMinute && currentMinute <= terlambatMinute) { // Cek range waktu
+      return {
+        sesi: sesi,
+        mulaiMinute: mulaiMinute,
+        hadirMinute: hadirMinute,
+        terlambatMinute: terlambatMinute
+      };
+    }
+  }
+
+  return {
+    sesi: "Diluar Jam", // Jika tidak masuk sesi
+    mulaiMinute: -1,
+    hadirMinute: -1,
+    terlambatMinute: -1
+  };
+}
+
+function resolveStatus_(currentMinute, sesiInfo) { // Menentukan status
+  if (sesiInfo.sesi === "Diluar Jam") { // Jika diluar jam
+    return "Diluar Jam";
+  }
+  if (currentMinute <= sesiInfo.hadirMinute) { // Jika masih batas hadir
+    return "Hadir";
+  }
+  return "Terlambat"; // Jika lewat batas
+}
+
+function findExistingPresensi_(sheet, tanggalKey, id, sesi) { // Cek absen ganda
+  const values = sheet.getDataRange().getValues(); // Ambil data presensi
+  for (let i = values.length - 1; i >= 1; i--) { // Loop dari bawah
+    const rowTanggal = String(values[i][1] || "").trim(); // Ambil tanggal
+    const rowId = String(values[i][2] || "").trim(); // Ambil ID
+    const rowSesi = String(values[i][5] || "").trim(); // Ambil sesi
+
+    if (rowTanggal === tanggalKey && rowId === id && rowSesi === sesi) { // Jika sama
+      return true; // Sudah absen
+    }
+  }
+  return false; // Belum absen
+}
+
+function parseHourMinute_(value) { // Ubah HH:MM ke menit
+  const parts = value.split(":"); // Pisah jam dan menit
+  return (Number(parts[0]) * 60) + Number(parts[1]); // Hitung total menit
+}
+
+function getCurrentMinute(dateObj, timezone) { // Ambil menit sekarang
+  const hour = Number(Utilities.formatDate(dateObj, timezone, "H")); // Ambil jam
+  const minute = Number(Utilities.formatDate(dateObj, timezone, "m")); // Ambil menit
+  return (hour * 60) + minute; // Hitung total menit
+}
+
+function jsonResponse(payload) { // Kirim response JSON
+  return ContentService
+    .createTextOutput(JSON.stringify(payload)) // Ubah ke JSON string
+    .setMimeType(ContentService.MimeType.JSON); // Set tipe JSON
+}`;
+        document.getElementById('codeContent').textContent = scriptContent;
+
+        async function apiRequest(path, options = {}) {
+            const response = await fetch(`${API_BASE_URL}${path}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                },
+                ...options
+            });
+
+            const payload = await response.json();
+            if (!response.ok || !payload.ok) {
+                throw new Error(payload.error || 'Request gagal');
+            }
+
+            return payload.data;
+        }
+
+        function formatCompactNumber(value) {
+            return new Intl.NumberFormat('id-ID', {
+                notation: 'compact',
+                maximumFractionDigits: 1
+            }).format(Number(value || 0));
+        }
+
+        let currentWebMeta = {
+            scriptTitle: 'Script Google Sheet',
+            fileName: 'p_ESP32_absensi.zip'
+        };
+
+        function getDownloadPath() {
+            return `download/${currentWebMeta.fileName}`;
+        }
+
+        function applyWebMeta(stats) {
+            currentWebMeta.scriptTitle = stats.scriptTitle || currentWebMeta.scriptTitle;
+            currentWebMeta.fileName = stats.fileName || currentWebMeta.fileName;
+
+            document.getElementById('scriptTitle').textContent = currentWebMeta.scriptTitle;
+            document.getElementById('downloadFileName').textContent = currentWebMeta.fileName;
+            document.getElementById('scriptFileLabel').textContent = 'google_sheet.gs';
+        }
+
+        function renderStats(stats) {
+            applyWebMeta(stats);
+            document.getElementById('statCopies').textContent = formatCompactNumber(stats.copyCount);
+            document.getElementById('statDownloads').textContent = formatCompactNumber(stats.downloadCount);
+            document.getElementById('statStars').textContent = Number(stats.ratingAverage || 0).toFixed(1);
+            renderRatingSummary(stats);
+        }
+
+        function renderRatingSummary(stats) {
+            const ratingCount = Number(stats.ratingCount || 0);
+            const ratingAverage = Number(stats.ratingAverage || 0);
+            const userRating = localStorage.getItem(LOCAL_RATING_KEY);
+            const summary = document.getElementById('ratingSummary');
+
+            if (ratingCount === 0) {
+                summary.textContent = userRating
+                    ? `Rating kamu: ${userRating}/5. Belum ada rating lain masuk ke server.`
+                    : 'Belum ada rating masuk. Jadi yang pertama kasih nilai.';
+                return;
+            }
+
+            summary.textContent = userRating
+                ? `Rata-rata ${ratingAverage.toFixed(1)}/5 dari ${ratingCount} rating. Rating kamu: ${userRating}/5.`
+                : `Rata-rata ${ratingAverage.toFixed(1)}/5 dari ${ratingCount} rating.`;
+        }
+
+        async function loadWebStats() {
+            try {
+                const stats = await apiRequest('/api/web/stats');
+                renderStats(stats);
+                syncRatingButtonsFromStorage();
+            } catch (error) {
+                document.getElementById('statCopies').textContent = '0';
+                document.getElementById('statDownloads').textContent = '0';
+                document.getElementById('statStars').textContent = '0.0';
+                document.getElementById('ratingSummary').textContent = 'Bot API belum bisa dihubungi. Cek alamat API di script web.';
+                console.error(error);
+            }
+        }
+
+        async function trackCopy() {
+            try {
+                const stats = await apiRequest('/api/web/copy', {
+                    method: 'POST',
+                    body: JSON.stringify({ script: currentWebMeta.scriptTitle })
+                });
+                renderStats(stats);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function trackDownload() {
+            try {
+                const stats = await apiRequest('/api/web/download', {
+                    method: 'POST',
+                    body: JSON.stringify({ file: currentWebMeta.fileName })
+                });
+                renderStats(stats);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function setRatingButtonsDisabled(disabled) {
+            document.querySelectorAll('.rating-star').forEach((button) => {
+                button.disabled = disabled;
+            });
+        }
+
+        function highlightRating(value) {
+            document.querySelectorAll('.rating-star').forEach((button) => {
+                const buttonValue = Number(button.dataset.rating);
+                button.classList.toggle('active', buttonValue <= value);
+            });
+        }
+
+        function syncRatingButtonsFromStorage() {
+            const saved = Number(localStorage.getItem(LOCAL_RATING_KEY) || 0);
+            if (saved > 0) {
+                highlightRating(saved);
+                setRatingButtonsDisabled(true);
+            }
+        }
+
+        function initRatingButtons() {
+            syncRatingButtonsFromStorage();
+
+            document.querySelectorAll('.rating-star').forEach((button) => {
+                button.addEventListener('click', async () => {
+                    const existing = Number(localStorage.getItem(LOCAL_RATING_KEY) || 0);
+                    if (existing > 0) {
+                        showToast('Perangkat ini sudah pernah memberi rating.', 'info');
+                        return;
+                    }
+
+                    const rating = Number(button.dataset.rating);
+                    setRatingButtonsDisabled(true);
+
+                    try {
+                        const stats = await apiRequest('/api/web/rating', {
+                            method: 'POST',
+                            body: JSON.stringify({ rating })
+                        });
+
+                        localStorage.setItem(LOCAL_RATING_KEY, String(rating));
+                        highlightRating(rating);
+                        renderStats(stats);
+                        showToast(`Makasih, rating ${rating}/5 sudah tersimpan.`, 'success');
+                    } catch (error) {
+                        setRatingButtonsDisabled(false);
+                        showToast('Gagal kirim rating ke bot API.', 'info');
+                        console.error(error);
+                    }
+                });
+            });
+        }
+
+        function copyScript() {
+            navigator.clipboard.writeText(scriptContent).then(() => {
+                // Update button state
+                const btn = document.getElementById('btnCopy');
+                const copyText = document.getElementById('copyText');
+                const copyIcon = document.getElementById('copyIcon');
+
+                btn.classList.add('copied');
+                copyText.textContent = 'Copied!';
+                copyIcon.innerHTML = '<polyline points="20 6 9 17 4 12" />';
+
+                // Show toast
+                showToast('Berhasil disalin ke clipboard!', 'success');
+                trackCopy();
+
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    copyText.textContent = 'Copy';
+                    copyIcon.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>';
+                }, 2000);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = scriptContent;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('Berhasil disalin ke clipboard!', 'success');
+                trackCopy();
+            });
+        }
+
+        /* ============================================
+           DOWNLOAD FILE FUNCTION
+           ============================================ */
+        async function downloadFile() {
+            const btn = document.getElementById('btnDownload');
+            const downloadText = document.getElementById('downloadText');
+
+            // Show downloading state
+            btn.classList.add('downloading');
+            downloadText.textContent = 'Downloading...';
+
+            try {
+                const a = document.createElement('a');
+                a.href = getDownloadPath();
+                a.download = currentWebMeta.fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                btn.classList.remove('downloading');
+                downloadText.textContent = 'Download File';
+                showToast('File berhasil diunduh!', 'success');
+                trackDownload();
+            } catch (error) {
+                btn.classList.remove('downloading');
+                downloadText.textContent = 'Download File';
+                showToast('File zip belum ditemukan di folder web/download.', 'info');
+                console.error(error);
+            }
+        }
+
+        /* ============================================
+           TOAST NOTIFICATION SYSTEM
+           ============================================ */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+
+            const icon = type === 'success'
+                ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+                : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('removing');
+                setTimeout(() => {
+                    container.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        /* ============================================
+           RIPPLE EFFECT ON DOWNLOAD BUTTON
+           ============================================ */
+        document.getElementById('btnDownload').addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = e.clientX - rect.left - size / 2 + 'px';
+            ripple.style.top = e.clientY - rect.top - size / 2 + 'px';
+            this.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+        });
+
+    </script>
+</body>
+</html>
