@@ -753,6 +753,259 @@
             line-height: 1.7;
         }
 
+        /* ========== CONTACT FORM ========== */
+        .qa-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal), background var(--transition-normal), color var(--transition-normal);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        .qa-chip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.3);
+        }
+        .qa-chip-blue {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--blue-secondary);
+        }
+        .qa-chip-green {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.28);
+            color: #34d399;
+        }
+        .qa-chip-purple {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.28);
+            color: #a78bfa;
+        }
+        .contact-modal-content {
+            max-width: 760px;
+            padding: 0;
+            overflow: hidden;
+        }
+        .contact-modal-shell {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.2fr);
+            min-height: 100%;
+        }
+        .contact-modal-shell::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at top left, rgba(96, 165, 250, 0.2), transparent 34%),
+                radial-gradient(circle at bottom right, rgba(45, 212, 191, 0.16), transparent 34%);
+            pointer-events: none;
+        }
+        .contact-modal-side,
+        .contact-modal-main {
+            position: relative;
+            z-index: 1;
+        }
+        .contact-modal-side {
+            padding: 34px 28px;
+            background: linear-gradient(180deg, rgba(10, 14, 26, 0.92), rgba(15, 22, 41, 0.84));
+            border-right: 1px solid rgba(59, 130, 246, 0.14);
+        }
+        .contact-modal-main {
+            padding: 34px 30px 30px;
+            background: linear-gradient(180deg, rgba(15, 22, 41, 0.72), rgba(10, 14, 26, 0.9));
+        }
+        .contact-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            background: rgba(59, 130, 246, 0.1);
+            color: #dbeafe;
+            font-size: 12px;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+        .contact-side-title {
+            font-size: clamp(24px, 4vw, 32px);
+            line-height: 1.08;
+            letter-spacing: -0.8px;
+            margin-bottom: 14px;
+        }
+        .contact-side-title span {
+            background: linear-gradient(90deg, #93c5fd, #67e8f9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .contact-side-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 22px;
+        }
+        .contact-side-list {
+            display: grid;
+            gap: 12px;
+        }
+        .contact-side-item {
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .contact-side-item strong {
+            display: block;
+            color: var(--text-primary);
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .contact-form-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+        .contact-form-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+            margin-bottom: 6px;
+        }
+        .contact-form-subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+        .contact-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+        .contact-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .contact-field-full {
+            grid-column: 1 / -1;
+        }
+        .contact-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #dbeafe;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .contact-input,
+        .contact-select,
+        .contact-textarea {
+            width: 100%;
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 16px;
+            background: rgba(10, 14, 26, 0.7);
+            color: var(--text-primary);
+            padding: 14px 16px;
+            font: inherit;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+        }
+        .contact-input::placeholder,
+        .contact-textarea::placeholder {
+            color: rgba(148, 163, 184, 0.7);
+        }
+        .contact-input:focus,
+        .contact-select:focus,
+        .contact-textarea:focus {
+            outline: none;
+            border-color: rgba(96, 165, 250, 0.5);
+            background: rgba(15, 23, 42, 0.92);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+        }
+        .contact-select-wrap {
+            position: relative;
+        }
+        .contact-select {
+            appearance: none;
+            cursor: pointer;
+            padding-right: 48px;
+            color: #f8fafc;
+        }
+        .contact-select-wrap::after {
+            content: '';
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            width: 10px;
+            height: 10px;
+            border-right: 2px solid rgba(191, 219, 254, 0.92);
+            border-bottom: 2px solid rgba(191, 219, 254, 0.92);
+            transform: translateY(-65%) rotate(45deg);
+            pointer-events: none;
+        }
+        .contact-select option {
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .contact-helper {
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .contact-textarea {
+            min-height: 124px;
+            resize: vertical;
+        }
+        .contact-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+        .contact-note {
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.7;
+            max-width: 290px;
+        }
+        .contact-submit {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 22px;
+            border: 1px solid rgba(45, 212, 191, 0.28);
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.18), rgba(59, 130, 246, 0.18));
+            color: #e6fffb;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
+            box-shadow: 0 16px 34px rgba(8, 145, 178, 0.16);
+        }
+        .contact-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 38px rgba(8, 145, 178, 0.22);
+            border-color: rgba(103, 232, 249, 0.4);
+        }
+        .contact-submit:active {
+            transform: translateY(0) scale(0.98);
+        }
+
         /* ========== THEORY GRID ========== */
         .theory-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1097,6 +1350,14 @@
             .toast { min-width: auto; width: 100%; }
             .btn-download { padding: 14px 28px; font-size: 14px; }
             .modal-content { padding: 24px; }
+            .contact-modal-content { padding: 0; }
+            .contact-modal-shell { grid-template-columns: 1fr; }
+            .contact-modal-side {
+                padding: 28px 24px 16px;
+                border-right: none;
+                border-bottom: 1px solid rgba(59, 130, 246, 0.14);
+            }
+            .contact-modal-main { padding: 24px; }
             .audio-control {
                 right: 18px;
                 bottom: 18px;
@@ -1115,6 +1376,10 @@
             .hero-buttons { flex-direction: column; align-items: center; }
             .btn-scroll { width: 100%; max-width: 280px; justify-content: center; }
             .modal-grid { grid-template-columns: 1fr 1fr; }
+            .contact-form-grid { grid-template-columns: 1fr; }
+            .contact-actions { align-items: stretch; }
+            .contact-note,
+            .contact-submit { width: 100%; max-width: none; }
             .hero h1 {
                 line-height: 1.06;
                 letter-spacing: -1px;
@@ -1527,6 +1792,41 @@
                 </div>
             </section>
 
+            <section class="glass-card fade-in" id="preferencesSection">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-icon">⚙️</div>
+                        <div>
+                            <div class="card-title">Preferences</div>
+                            <div class="card-subtitle">Additional Board Manager URLs</div>
+                        </div>
+                    </div>
+                    <div class="editor-actions">
+                        <button class="btn-copy" id="btnCopyPreferences" onclick="copyCode(preferencesContent, 'btnCopyPreferences', 'copyTextPreferences', 'copyIconPreferences')">
+                            <svg id="copyIconPreferences" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span id="copyTextPreferences">Copy</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="code-editor">
+                    <div class="editor-topbar">
+                        <div class="editor-dots">
+                            <div class="editor-dot red"></div>
+                            <div class="editor-dot yellow"></div>
+                            <div class="editor-dot green"></div>
+                        </div>
+                        <span class="editor-filename">Preferences</span>
+                        <span style="font-size: 12px; color: var(--text-muted);">Arduino IDE</span>
+                    </div>
+                    <div class="code-body">
+                        <pre id="preferencesContent"></pre>
+                    </div>
+                </div>
+            </section>
+
             <section class="glass-card fade-in" id="downloadSection">
                 <div class="download-section">
                     <div class="card-title-group" style="justify-content: center; margin-bottom: 20px;">
@@ -1593,11 +1893,118 @@
                     Kami siap menerima pertanyaan, saran, dan masukan dari Bapak/Ibu guru serta teman-teman sekalian.
                 </p>
                 <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-                    <span style="padding: 8px 20px; background: rgba(59,130,246,0.1); border: 1px solid var(--border-color); border-radius: 50px; font-size: 13px; color: var(--blue-secondary);">❓ Tanya Jawab</span>
-                    <span style="padding: 8px 20px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 50px; font-size: 13px; color: #34d399;">💬 Diskusi</span>
-                    <span style="padding: 8px 20px; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); border-radius: 50px; font-size: 13px; color: #a78bfa;">📝 Evaluasi</span>
+                    <button type="button" class="qa-chip qa-chip-blue" data-contact-trigger data-category="Tanya Jawab" data-emoji="❓">❓ Tanya Jawab</button>
+                    <button type="button" class="qa-chip qa-chip-green" data-contact-trigger data-category="Diskusi" data-emoji="💬">💬 Diskusi</button>
+                    <button type="button" class="qa-chip qa-chip-purple" data-contact-trigger data-category="Evaluasi" data-emoji="📝">📝 Evaluasi</button>
                 </div>
             </section>
+
+            <div class="modal-overlay" id="contactModal">
+                <div class="modal-content contact-modal-content" role="dialog" aria-modal="true" aria-labelledby="contactFormTitle">
+                    <div class="contact-modal-shell">
+                        <div class="contact-modal-side">
+                            <div class="contact-badge">WhatsApp Response</div>
+                            <div class="contact-side-title">Sampaikan <span>pesanmu</span> dengan format yang rapi.</div>
+                            <p class="contact-side-desc">
+                                Isi data singkat di samping, lalu kami arahkan langsung ke WhatsApp agar pertanyaan, diskusi, atau evaluasi kamu lebih mudah dibaca dan dibalas.
+                            </p>
+                            <div class="contact-side-list">
+                                <div class="contact-side-item">
+                                    <strong>Kategori Otomatis</strong>
+                                    Form akan menyesuaikan tombol yang kamu klik: Tanya Jawab, Diskusi, atau Evaluasi.
+                                </div>
+                                <div class="contact-side-item">
+                                    <strong>Ringkas dan Modern</strong>
+                                    Data inti, pilihan cepat, dan kolom pesan manual supaya tetap fleksibel.
+                                </div>
+                                <div class="contact-side-item">
+                                    <strong>Langsung ke WhatsApp</strong>
+                                    Tujuan pesan akan dikirim ke nomor admin proyek yang sudah ditentukan.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="contact-modal-main">
+                            <div class="contact-form-header">
+                                <div>
+                                    <div class="contact-form-title" id="contactFormTitle">Hubungi Tim Proyek</div>
+                                    <div class="contact-form-subtitle">Lengkapi data berikut agar pesan yang terkirim ke WhatsApp lebih jelas dan profesional.</div>
+                                </div>
+                                <button class="modal-close" id="contactModalClose" aria-label="Tutup form kontak">&times;</button>
+                            </div>
+
+                            <form id="contactForm">
+                                <div class="contact-form-grid">
+                                    <div class="contact-field">
+                                        <label class="contact-label" for="contactName">Nama Lengkap</label>
+                                        <input class="contact-input" id="contactName" name="name" type="text" placeholder="Contoh: Ahmad Fauzi" required>
+                                    </div>
+                                    <div class="contact-field">
+                                        <label class="contact-label" for="contactOrigin">Asal</label>
+                                        <input class="contact-input" id="contactOrigin" name="origin" type="text" placeholder="Contoh: SMKN 1 Jakarta / Universitas / Instansi" required>
+                                    </div>
+                                    <div class="contact-field">
+                                        <label class="contact-label" for="contactStatus">Status</label>
+                                        <div class="contact-select-wrap">
+                                            <select class="contact-select" id="contactStatus" name="status" required>
+                                                <option value="">Pilih status</option>
+                                                <option value="Siswa">Siswa</option>
+                                                <option value="Guru">Guru</option>
+                                                <option value="Mahasiswa">Mahasiswa</option>
+                                                <option value="Umum">Umum</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="contact-field">
+                                        <label class="contact-label" for="contactNeed">Keperluan</label>
+                                        <div class="contact-select-wrap">
+                                            <select class="contact-select" id="contactNeed" name="need" required>
+                                                <option value="">Pilih keperluan</option>
+                                                <option value="Bertanya">Bertanya</option>
+                                                <option value="Diskusi Project">Diskusi Project</option>
+                                                <option value="Memberi Masukan">Memberi Masukan</option>
+                                                <option value="Kendala Teknis">Kendala Teknis</option>
+                                                <option value="Lainnya">Lainnya</option>
+                                            </select>
+                                        </div>
+                                        <div class="contact-helper">Pilih tujuan utama pesanmu supaya admin lebih cepat memahami konteksnya.</div>
+                                    </div>
+                                    <div class="contact-field">
+                                        <label class="contact-label" for="contactPhone">Kontak</label>
+                                        <input class="contact-input" id="contactPhone" name="phone" type="text" placeholder="Contoh: 08xxxxxxxxxx / email aktif" required>
+                                    </div>
+                                    <div class="contact-field">
+                                        <label class="contact-label" for="contactCategory">Kategori</label>
+                                        <div class="contact-select-wrap">
+                                            <select class="contact-select" id="contactCategory" name="category" required>
+                                                <option value="">Pilih kategori</option>
+                                                <option value="Tanya Jawab">Tanya Jawab</option>
+                                                <option value="Diskusi">Diskusi</option>
+                                                <option value="Evaluasi">Evaluasi</option>
+                                            </select>
+                                        </div>
+                                        <div class="contact-helper">Kategori awal mengikuti tombol yang diklik, tapi masih bisa kamu ubah di sini.</div>
+                                    </div>
+                                    <div class="contact-field contact-field-full" id="contactNeedOtherWrap" style="display: none;">
+                                        <label class="contact-label" for="contactNeedOther">Keperluan Lainnya</label>
+                                        <input class="contact-input" id="contactNeedOther" name="needOther" type="text" placeholder="Isi jika keperluan tidak ada di pilihan">
+                                    </div>
+                                    <div class="contact-field contact-field-full">
+                                        <label class="contact-label" for="contactMessage">Pesan</label>
+                                        <textarea class="contact-textarea" id="contactMessage" name="message" placeholder="Tulis pertanyaan, diskusi, atau evaluasi kamu di sini" required></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="contact-actions">
+                                    <div class="contact-note">
+                                        Setelah klik tombol kirim, kamu akan diarahkan ke WhatsApp dengan pesan yang sudah tersusun otomatis.
+                                    </div>
+                                    <button class="contact-submit" type="submit">Kirim ke WhatsApp</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Footer -->
             <footer class="footer fade-in">
@@ -1798,12 +2205,18 @@ function jsonResponse(payload) { // Kirim response JSON
     .setMimeType(ContentService.MimeType.JSON); // Set tipe JSON
 }`;
 
+        const preferencesContent = `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`;
+        const whatsappNumber = '6287722862009';
+        let activeContactCategory = 'Tanya Jawab';
+        let activeContactEmoji = '❓';
+
         // ========== INITIALIZATION ==========
         window.addEventListener('load', () => {
             setTimeout(() => {
                 document.getElementById('preloader').classList.add('hidden');
                 initScrollAnimations();
                 document.getElementById('codeContent').textContent = scriptContent;
+                document.getElementById('preferencesContent').textContent = preferencesContent;
                 initMemberCarousel();
                 initVisualizerBars();
             }, 800);
@@ -2115,6 +2528,114 @@ function jsonResponse(payload) { // Kirim response JSON
             if (e.key === 'Escape' && groupModal.classList.contains('active')) closeModal();
         });
 
+        // ========== CONTACT FORM MODAL ==========
+        const contactModal = document.getElementById('contactModal');
+        const contactModalClose = document.getElementById('contactModalClose');
+        const contactForm = document.getElementById('contactForm');
+        const contactStatus = document.getElementById('contactStatus');
+        const contactNeed = document.getElementById('contactNeed');
+        const contactCategory = document.getElementById('contactCategory');
+        const contactNeedOther = document.getElementById('contactNeedOther');
+        const contactNeedOtherWrap = document.getElementById('contactNeedOtherWrap');
+        const contactTriggers = document.querySelectorAll('[data-contact-trigger]');
+
+        function syncContactCategory(category, emoji) {
+            activeContactCategory = category;
+            activeContactEmoji = emoji;
+            contactCategory.value = category;
+        }
+
+        function openContactModal(category, emoji) {
+            syncContactCategory(category, emoji);
+            contactModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeContactModal() {
+            contactModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function toggleNeedOtherField() {
+            const shouldShow = contactNeed.value === 'Lainnya';
+            contactNeedOtherWrap.style.display = shouldShow ? 'flex' : 'none';
+            contactNeedOther.required = shouldShow;
+            if (!shouldShow) {
+                contactNeedOther.value = '';
+            }
+        }
+
+        function buildWhatsappMessage(formData) {
+            const customNeed = formData.need === 'Lainnya'
+                ? (formData.needOther || '-')
+                : formData.need;
+
+            return [
+                'Halo, saya ingin menghubungi terkait website project.',
+                '',
+                `Nama: ${formData.name}`,
+                `Asal: ${formData.origin}`,
+                `Status: ${formData.status}`,
+                `Kategori: ${formData.category}`,
+                `Keperluan: ${customNeed}`,
+                `Kontak: ${formData.phone}`,
+                `Pesan: ${formData.message}`
+            ].join('\n');
+        }
+
+        contactTriggers.forEach((trigger) => {
+            trigger.addEventListener('click', () => {
+                openContactModal(trigger.dataset.category, trigger.dataset.emoji);
+            });
+        });
+        contactCategory.addEventListener('change', () => {
+            activeContactCategory = contactCategory.value;
+        });
+
+        contactModalClose.addEventListener('click', closeContactModal);
+        contactModal.addEventListener('click', (event) => {
+            if (event.target === contactModal) closeContactModal();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && contactModal.classList.contains('active')) closeContactModal();
+        });
+        contactNeed.addEventListener('change', toggleNeedOtherField);
+
+        contactForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const formData = {
+                name: document.getElementById('contactName').value.trim(),
+                origin: document.getElementById('contactOrigin').value.trim(),
+                status: contactStatus.value,
+                category: contactCategory.value,
+                need: contactNeed.value,
+                needOther: contactNeedOther.value.trim(),
+                phone: document.getElementById('contactPhone').value.trim(),
+                message: document.getElementById('contactMessage').value.trim()
+            };
+
+            if (!formData.name || !formData.origin || !formData.status || !formData.category || !formData.need || !formData.phone || !formData.message) {
+                showToast('Mohon lengkapi semua data yang wajib diisi.', 'info');
+                return;
+            }
+
+            if (formData.need === 'Lainnya' && !formData.needOther) {
+                showToast('Isi bagian keperluan lainnya terlebih dahulu.', 'info');
+                contactNeedOther.focus();
+                return;
+            }
+
+            const message = buildWhatsappMessage(formData);
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank', 'noopener');
+            showToast('WhatsApp sedang dibuka dengan pesan otomatis.', 'success');
+            closeContactModal();
+            contactForm.reset();
+            toggleNeedOtherField();
+            syncContactCategory('Tanya Jawab', '❓');
+        });
+
         // ========== TOOL CARD REVEAL ==========
         const toolItems = document.querySelectorAll('.tool-item');
         const toolCardOverlay = document.getElementById('toolCardOverlay');
@@ -2198,10 +2719,14 @@ function jsonResponse(payload) { // Kirim response JSON
 
         // ========== COPY SCRIPT FUNCTION ==========
         function copyScript() {
-            navigator.clipboard.writeText(scriptContent).then(() => {
-                const btn = document.getElementById('btnCopy');
-                const copyText = document.getElementById('copyText');
-                const copyIcon = document.getElementById('copyIcon');
+            copyCode(scriptContent, 'btnCopy', 'copyText', 'copyIcon');
+        }
+
+        function copyCode(content, buttonId, textId, iconId) {
+            navigator.clipboard.writeText(content).then(() => {
+                const btn = document.getElementById(buttonId);
+                const copyText = document.getElementById(textId);
+                const copyIcon = document.getElementById(iconId);
                 btn.classList.add('copied');
                 copyText.textContent = 'Copied!';
                 copyIcon.innerHTML = '<polyline points="20 6 9 17 4 12" />';
@@ -2213,7 +2738,7 @@ function jsonResponse(payload) { // Kirim response JSON
                 }, 2000);
             }).catch(() => {
                 const textarea = document.createElement('textarea');
-                textarea.value = scriptContent;
+                textarea.value = content;
                 textarea.style.position = 'fixed';
                 textarea.style.opacity = '0';
                 document.body.appendChild(textarea);
