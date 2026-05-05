@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Script Downloader</title>
+    <meta name="description" content="Presentasi Proyek: Presensi Shalat Berjamaah Otomatis dengan Face Recognition berbasis ESP32-CAM dan Google Sheet">
+    <meta name="keywords" content="ESP32-CAM, Face Recognition, Google Sheet, IoT, Presensi, Sekolah, Proyek">
+    <meta name="theme-color" content="#0a0e1a">
+    <title>🕌 Presensi Shalat Berjamaah - ESP32-CAM + Google Sheet</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        /* ============================================
-           RESET & BASE STYLES
-           ============================================ */
         *, *::before, *::after {
             margin: 0;
             padding: 0;
@@ -20,7 +19,6 @@
         }
 
         :root {
-            /* Warna Utama */
             --bg-primary: #0a0e1a;
             --bg-secondary: #0f1629;
             --bg-card: rgba(15, 22, 41, 0.6);
@@ -34,21 +32,16 @@
             --text-muted: #64748b;
             --border-color: rgba(59, 130, 246, 0.15);
             --border-hover: rgba(59, 130, 246, 0.4);
-
-            /* Font */
             --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-
-            /* Transitions */
             --transition-fast: 0.15s ease;
             --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-glow: 0 0 30px rgba(59, 130, 246, 0.25);
+            --shadow-card: 0 8px 40px rgba(0, 0, 0, 0.3);
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
-
+        html { scroll-behavior: smooth; }
         body {
             font-family: var(--font-primary);
             background: var(--bg-primary);
@@ -59,293 +52,341 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ============================================
-           PRELOADER
-           ============================================ */
+        /* ========== PRELOADER ========== */
         .preloader {
-            position: fixed;
-            inset: 0;
-            z-index: 10000;
+            position: fixed; inset: 0; z-index: 10000;
             background: var(--bg-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 24px;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; gap: 24px;
             transition: opacity 0.6s ease, visibility 0.6s ease;
         }
-
-        .preloader.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
+        .preloader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
         .preloader-spinner {
-            width: 50px;
-            height: 50px;
+            width: 50px; height: 50px;
             border: 3px solid var(--border-color);
             border-top-color: var(--blue-primary);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-
         .preloader-text {
-            font-size: 14px;
-            color: var(--text-secondary);
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            font-size: 14px; color: var(--text-secondary);
+            letter-spacing: 2px; text-transform: uppercase;
             animation: pulse-text 1.5s ease-in-out infinite;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse-text { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes pulse-text {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        /* ============================================
-           ANIMATED BACKGROUND
-           ============================================ */
+        /* ========== BACKGROUND ANIMATION ========== */
         .bg-animated {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            overflow: hidden;
+            position: fixed; inset: 0; z-index: -1; overflow: hidden;
         }
-
-        /* Gradient orbs */
         .bg-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.3;
+            position: absolute; border-radius: 50%;
+            filter: blur(80px); opacity: 0.3;
             animation: float-orb 20s ease-in-out infinite;
         }
-
         .bg-orb:nth-child(1) {
-            width: 600px;
-            height: 600px;
+            width: 600px; height: 600px;
             background: radial-gradient(circle, var(--blue-glow), transparent 70%);
-            top: -200px;
-            left: -100px;
-            animation-delay: 0s;
+            top: -200px; left: -100px; animation-delay: 0s;
         }
-
         .bg-orb:nth-child(2) {
-            width: 500px;
-            height: 500px;
+            width: 500px; height: 500px;
             background: radial-gradient(circle, var(--blue-neon), transparent 70%);
-            bottom: -150px;
-            right: -100px;
-            animation-delay: -7s;
-            animation-duration: 25s;
+            bottom: -150px; right: -100px;
+            animation-delay: -7s; animation-duration: 25s;
         }
-
         .bg-orb:nth-child(3) {
-            width: 400px;
-            height: 400px;
+            width: 400px; height: 400px;
             background: radial-gradient(circle, #8b5cf6, transparent 70%);
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            animation-delay: -14s;
-            animation-duration: 30s;
+            animation-delay: -14s; animation-duration: 30s;
             opacity: 0.15;
         }
-
         @keyframes float-orb {
             0%, 100% { transform: translate(0, 0) scale(1); }
             25% { transform: translate(50px, -80px) scale(1.1); }
             50% { transform: translate(-30px, 60px) scale(0.9); }
             75% { transform: translate(70px, 40px) scale(1.05); }
         }
-
-        /* Grid pattern overlay */
         .bg-grid {
-            position: absolute;
-            inset: 0;
+            position: absolute; inset: 0;
             background-image:
                 linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
             background-size: 60px 60px;
         }
-
-        /* Particle canvas */
         #particleCanvas {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
         }
 
-        /* ============================================
-           MAIN CONTAINER
-           ============================================ */
+        /* ========== LAYOUT & CONTAINER ========== */
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 0 24px;
         }
-
-        /* ============================================
-           HEADER / NAVBAR
-           ============================================ */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            padding: 16px 0;
-            transition: var(--transition-normal);
+        section { padding: 80px 0; }
+        .section-title {
+            text-align: center;
+            font-size: clamp(24px, 4vw, 32px);
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto 40px;
         }
 
+        /* ========== HEADER ========== */
+        .header {
+            position: fixed; top: 0; left: 0; right: 0;
+            z-index: 1000; padding: 16px 0;
+            transition: var(--transition-normal);
+        }
         .header.scrolled {
-            background: rgba(10, 14, 26, 0.8);
+            background: rgba(10, 14, 26, 0.88);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border-color);
             padding: 12px 0;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
         }
-
         .header-inner {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            max-width: 1000px; margin: 0 auto; padding: 0 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 18px;
         }
-
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            z-index: 1200;
+            pointer-events: none;
+        }
+        .scroll-progress-bar {
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue-primary), var(--blue-neon), #8b5cf6);
+            box-shadow: 0 0 18px rgba(0, 180, 216, 0.55);
+            transition: width 0.12s linear;
+        }
         .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: var(--text-primary);
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none; color: var(--text-primary);
+            flex-shrink: 0;
         }
-
         .logo-icon {
-            width: 36px;
-            height: 36px;
+            width: 36px; height: 36px;
             background: linear-gradient(135deg, var(--blue-primary), var(--blue-neon));
             border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 18px;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+            box-shadow: var(--shadow-glow);
             transition: var(--transition-normal);
         }
-
         .logo:hover .logo-icon {
-            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
             transform: scale(1.05);
         }
-
         .logo-text {
-            font-weight: 700;
-            font-size: 18px;
-            letter-spacing: -0.3px;
+            font-weight: 700; font-size: 18px; letter-spacing: -0.3px;
         }
-
         .logo-text span {
             background: linear-gradient(135deg, var(--blue-secondary), var(--blue-neon));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-
         .header-badge {
             padding: 6px 14px;
             background: rgba(59, 130, 246, 0.1);
             border: 1px solid var(--border-color);
             border-radius: 20px;
-            font-size: 12px;
-            color: var(--blue-secondary);
-            font-weight: 500;
-            letter-spacing: 0.5px;
+            font-size: 12px; color: var(--blue-secondary);
+            font-weight: 500; letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+        .header-nav {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            min-width: 0;
+        }
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(59, 130, 246, 0.14);
+            border-radius: 999px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .nav-menu::-webkit-scrollbar { display: none; }
+        .nav-link {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 14px;
+            border-radius: 999px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: color var(--transition-normal), background var(--transition-normal), box-shadow var(--transition-normal), transform var(--transition-normal);
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 14px;
+            right: 14px;
+            bottom: 7px;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--blue-secondary), var(--blue-neon));
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform var(--transition-normal);
+        }
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: rgba(59, 130, 246, 0.12);
+            box-shadow: 0 0 18px rgba(59, 130, 246, 0.14);
+            transform: translateY(-1px);
+        }
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            transform: scaleX(1);
+        }
+        .nav-link.active {
+            color: #dbeafe;
+            background: rgba(59, 130, 246, 0.18);
+            box-shadow: 0 0 24px rgba(59, 130, 246, 0.18);
         }
 
-        /* ============================================
-           HERO SECTION
-           ============================================ */
+        /* ========== HERO SECTION ========== */
         .hero {
-            padding: 140px 0 60px;
+            padding: 160px 0 100px;
             text-align: center;
+            position: relative;
         }
-
         .hero-content {
-            opacity: 0;
-            transform: translateY(30px);
+            opacity: 0; transform: translateY(30px);
             animation: fadeUp 0.8s ease forwards;
             animation-delay: 0.5s;
         }
-
         .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            display: inline-flex; align-items: center; gap: 8px;
             padding: 8px 18px;
             background: rgba(59, 130, 246, 0.08);
             border: 1px solid var(--border-color);
             border-radius: 50px;
-            font-size: 13px;
-            color: var(--blue-secondary);
-            margin-bottom: 24px;
-            font-weight: 500;
+            font-size: 13px; color: var(--blue-secondary);
+            margin-bottom: 24px; font-weight: 500;
         }
-
         .hero-badge-dot {
-            width: 8px;
-            height: 8px;
+            width: 8px; height: 8px;
             background: var(--blue-primary);
             border-radius: 50%;
             animation: pulse-dot 2s ease-in-out infinite;
         }
-
         @keyframes pulse-dot {
             0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
             50% { opacity: 0.8; box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
         }
-
         .hero h1 {
-            font-size: clamp(32px, 6vw, 56px);
-            font-weight: 800;
-            line-height: 1.1;
+            max-width: 980px;
+            margin: 0 auto 24px;
+            font-size: clamp(27px, 5.1vw, 46px);
+            font-weight: 800; line-height: 1.04;
             letter-spacing: -1.5px;
-            margin-bottom: 16px;
+            text-wrap: balance;
+            text-shadow: 0 10px 30px rgba(2, 6, 23, 0.16);
         }
-
-        .hero h1 .gradient-text {
-            background: linear-gradient(135deg, var(--blue-secondary) 0%, var(--blue-neon) 50%, #a78bfa 100%);
+        .hero-title-line {
+            display: block;
+        }
+        .hero-title-line + .hero-title-line {
+            margin-top: 2px;
+        }
+        .hero-title-line.accent-line {
+            color: rgba(248, 251, 255, 0.98);
+        }
+        .hero-title-line.subtle-line {
+            color: rgba(214, 226, 243, 0.92);
+            font-size: 0.78em;
+            font-weight: 700;
+            letter-spacing: -0.7px;
+        }
+        .hero h1 .accent-text {
+            background: linear-gradient(90deg, #5cb3ff 0%, #27c2ec 52%, #7d9cff 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            filter: drop-shadow(0 8px 16px rgba(56, 189, 248, 0.08));
         }
-
+        .hero-title-line:first-child {
+            max-width: none;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hero-title-line.accent-line {
+            max-width: none;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hero-title-line.subtle-line {
+            max-width: none;
+            margin-left: auto;
+            margin-right: auto;
+            color: rgba(191, 203, 221, 0.72);
+        }
+        .hero h1 .gradient-text {
+            background: linear-gradient(135deg, var(--blue-secondary) 0%, var(--blue-neon) 50%, #a78bfa 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
         .hero p {
-            font-size: 17px;
-            color: var(--text-secondary);
-            max-width: 500px;
-            margin: 0 auto;
-            line-height: 1.7;
+            font-size: 17px; color: var(--text-secondary);
+            max-width: 650px; margin: 0 auto 32px; line-height: 1.7;
         }
-
-        @keyframes fadeUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .hero-buttons {
+            display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
         }
+        .btn-scroll {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 12px 28px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--blue-secondary);
+            font-size: 14px; font-weight: 500;
+            cursor: pointer; transition: var(--transition-normal);
+            text-decoration: none;
+        }
+        .btn-scroll:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--blue-primary);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
-        /* ============================================
-           GLASS CARD (Glassmorphism)
-           ============================================ */
+        /* ========== GLASS CARD ========== */
         .glass-card {
             background: var(--bg-card);
             backdrop-filter: blur(20px);
@@ -355,59 +396,32 @@
             padding: 32px;
             margin-bottom: 24px;
             transition: var(--transition-normal);
-            opacity: 0;
-            transform: translateY(30px);
+            opacity: 0; transform: translateY(30px);
         }
-
-        .glass-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
+        .glass-card.visible { opacity: 1; transform: translateY(0); }
         .glass-card:hover {
             border-color: var(--border-hover);
-            box-shadow: 0 8px 40px rgba(59, 130, 246, 0.08);
+            box-shadow: 0 12px 50px rgba(59, 130, 246, 0.12);
         }
-
         .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; gap: 12px;
         }
-
         .card-title-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            display: flex; align-items: center; gap: 12px;
         }
-
         .card-icon {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05));
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 18px;
         }
+        .card-title { font-size: 16px; font-weight: 600; }
+        .card-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
-        .card-title {
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .card-subtitle {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        /* ============================================
-           CODE BLOCK (VSCode-like)
-           ============================================ */
+        /* ========== CODE EDITOR ========== */
         .code-editor {
             background: #0d1117;
             border: 1px solid rgba(59, 130, 246, 0.1);
@@ -415,66 +429,41 @@
             overflow: hidden;
             transition: var(--transition-normal);
         }
-
         .code-editor:hover {
             border-color: rgba(59, 130, 246, 0.25);
             box-shadow: 0 0 30px rgba(59, 130, 246, 0.05);
         }
-
-        /* Editor top bar */
         .editor-topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between;
             padding: 12px 16px;
             background: rgba(255, 255, 255, 0.02);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            gap: 10px;
         }
-
-        .editor-dots {
-            display: flex;
-            gap: 8px;
-        }
-
+        .editor-dots { display: flex; gap: 8px; }
         .editor-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
+            width: 12px; height: 12px; border-radius: 50%;
             transition: var(--transition-fast);
         }
-
         .editor-dot:hover { transform: scale(1.3); }
         .editor-dot.red { background: #ff5f57; }
         .editor-dot.yellow { background: #febc2e; }
         .editor-dot.green { background: #28c840; }
-
         .editor-filename {
-            font-family: var(--font-mono);
-            font-size: 13px;
-            color: var(--text-muted);
+            font-family: var(--font-mono); font-size: 13px; color: var(--text-muted);
         }
-
-        .editor-actions {
-            display: flex;
-            gap: 8px;
-        }
-
+        .editor-actions { display: flex; gap: 8px; }
         .btn-copy {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            display: inline-flex; align-items: center; gap: 6px;
             padding: 6px 14px;
             background: rgba(59, 130, 246, 0.1);
             border: 1px solid rgba(59, 130, 246, 0.2);
             border-radius: 8px;
             color: var(--blue-secondary);
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition-normal);
+            font-size: 12px; font-weight: 500;
+            cursor: pointer; transition: var(--transition-normal);
             font-family: var(--font-primary);
         }
-
         .btn-copy:hover {
             background: rgba(59, 130, 246, 0.2);
             border-color: var(--blue-primary);
@@ -482,481 +471,726 @@
             box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
             transform: translateY(-1px);
         }
-
-        .btn-copy:active {
-            transform: translateY(0) scale(0.97);
-        }
-
+        .btn-copy:active { transform: translateY(0) scale(0.97); }
         .btn-copy.copied {
             background: rgba(16, 185, 129, 0.15);
             border-color: rgba(16, 185, 129, 0.3);
             color: #34d399;
         }
-
-        /* Code content */
-        .code-body {
-            padding: 20px;
-            overflow-x: auto;
-            counter-reset: line;
-        }
-
-        .code-body::-webkit-scrollbar {
-            height: 6px;
-        }
-
-        .code-body::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
+        .code-body { padding: 20px; overflow-x: auto; }
+        .code-body::-webkit-scrollbar { height: 6px; }
+        .code-body::-webkit-scrollbar-track { background: transparent; }
         .code-body::-webkit-scrollbar-thumb {
-            background: rgba(59, 130, 246, 0.2);
-            border-radius: 3px;
+            background: rgba(59, 130, 246, 0.2); border-radius: 3px;
         }
-
         .code-body pre {
-            margin: 0;
-            font-family: var(--font-mono);
-            font-size: 13.5px;
-            line-height: 1.7;
-            color: #e6edf3;
-            tab-size: 2;
+            margin: 0; font-family: var(--font-mono); font-size: 13.5px;
+            line-height: 1.7; color: #e6edf3; tab-size: 2;
+            white-space: pre; min-width: max-content;
         }
 
-        .code-line {
-            display: block;
-            padding: 0 4px;
-            border-radius: 4px;
-            transition: background var(--transition-fast);
-        }
-
-        .code-line:hover {
-            background: rgba(59, 130, 246, 0.06);
-        }
-
-        /* Syntax highlighting */
-        .token-keyword { color: #ff7b72; }
-        .token-string { color: #a5d6ff; }
-        .token-comment { color: #8b949e; font-style: italic; }
-        .token-function { color: #d2a8ff; }
-        .token-number { color: #79c0ff; }
-        .token-operator { color: #ff7b72; }
-        .token-variable { color: #ffa657; }
-        .token-property { color: #7ee787; }
-        .token-bracket { color: #e6edf3; }
-        .token-punctuation { color: #8b949e; }
-
-        /* ============================================
-           DOWNLOAD SECTION
-           ============================================ */
-        .download-section {
-            text-align: center;
-            padding: 8px 0;
-        }
-
+        /* ========== DOWNLOAD SECTION ========== */
+        .download-section { text-align: center; padding: 8px 0; }
         .download-info {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
+            display: flex; align-items: center; justify-content: center;
+            gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
         }
-
         .info-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            display: inline-flex; align-items: center; gap: 6px;
             padding: 6px 14px;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 8px;
-            font-size: 12px;
-            color: var(--text-muted);
+            font-size: 12px; color: var(--text-muted);
         }
-
-        .info-chip svg {
-            width: 14px;
-            height: 14px;
-        }
-
+        .info-chip svg { width: 14px; height: 14px; }
         .btn-download {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
+            display: inline-flex; align-items: center; gap: 10px;
             padding: 16px 36px;
             background: linear-gradient(135deg, var(--blue-primary), var(--blue-glow));
-            border: none;
-            border-radius: 14px;
-            color: #fff;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition-normal);
+            border: none; border-radius: 14px;
+            color: #fff; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: var(--transition-normal);
             font-family: var(--font-primary);
-            position: relative;
-            overflow: hidden;
+            position: relative; overflow: hidden;
             box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+            text-decoration: none;
         }
-
         .btn-download::before {
-            content: '';
-            position: absolute;
-            inset: 0;
+            content: ''; position: absolute; inset: 0;
             background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.5s ease;
+            transform: translateX(-100%); transition: transform 0.5s ease;
         }
-
-        .btn-download:hover::before {
-            transform: translateX(100%);
-        }
-
+        .btn-download:hover::before { transform: translateX(100%); }
         .btn-download:hover {
             transform: translateY(-2px) scale(1.02);
             box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
         }
-
         .btn-download:active {
             transform: translateY(0) scale(0.98);
             box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
         }
-
         .btn-download svg {
-            width: 20px;
-            height: 20px;
-            transition: transform var(--transition-normal);
+            width: 20px; height: 20px; transition: transform var(--transition-normal);
         }
+        .btn-download:hover svg { transform: translateY(2px); }
 
-        .btn-download:hover svg {
-            transform: translateY(2px);
+        /* ========== GROUP SECTION ========== */
+        .group-grid {
+            position: relative;
+            height: 392px;
+            margin-bottom: 28px;
+            overflow: hidden;
+            cursor: grab;
+            touch-action: pan-y;
+            user-select: none;
+            -webkit-user-select: none;
         }
-
-        .btn-download.downloading {
+        .group-grid.dragging {
+            cursor: grabbing;
+        }
+        .member-card {
+            position: relative;
+            left: 50%;
+            top: 8px;
+            width: clamp(208px, 21vw, 238px);
+            min-height: 338px;
+            overflow: hidden;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px; padding: 24px 16px 16px;
+            text-align: center;
+            transition: box-shadow var(--transition-normal), border-color var(--transition-normal), transform var(--transition-normal);
+            transform-style: preserve-3d; perspective: 1000px;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 16px 40px rgba(4, 9, 23, 0.35);
+            opacity: 0;
+            will-change: transform, opacity, filter;
+            position: absolute;
+            transform: translateX(-50%);
+        }
+        .member-card.visible { opacity: 1; }
+        .member-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(140deg, rgba(96, 165, 250, 0.18), transparent 38%, transparent 70%, rgba(139, 92, 246, 0.12));
+            opacity: 0.8;
             pointer-events: none;
         }
-
-        .rating-panel {
-            margin-top: 28px;
-            padding-top: 22px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        .member-card::after {
+            content: '';
+            position: absolute;
+            inset: 1px;
+            border-radius: 23px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 20%);
+            pointer-events: none;
         }
-
-        .rating-title {
+        .member-card:hover {
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.16), 0 18px 45px rgba(37, 99, 235, 0.22);
+        }
+        .member-card.is-active {
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.14), 0 18px 50px rgba(37, 99, 235, 0.2);
+        }
+        .member-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        .member-avatar {
+            width: 72px; height: 72px; margin: 0 auto 18px;
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-neon));
+            border-radius: 26px; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: 700; color: #fff;
+            box-shadow: 0 0 24px rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+        .member-name {
+            font-weight: 700;
+            margin-bottom: 8px;
             font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: var(--text-primary);
-        }
-
-        .rating-stars {
+            line-height: 1.55;
+            min-height: 44px;
             display: flex;
+            align-items: center;
             justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
         }
-
-        .rating-star {
-            width: 46px;
-            height: 46px;
-            border: 1px solid rgba(59, 130, 246, 0.18);
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            color: #fbbf24;
-            font-size: 24px;
-            line-height: 1;
-            cursor: pointer;
-            transition: var(--transition-normal);
-        }
-
-        .rating-star:hover {
-            transform: translateY(-2px);
-            border-color: rgba(251, 191, 36, 0.45);
-            box-shadow: 0 10px 25px rgba(251, 191, 36, 0.12);
-        }
-
-        .rating-star.active {
-            background: rgba(251, 191, 36, 0.12);
-            border-color: rgba(251, 191, 36, 0.4);
-        }
-
-        .rating-star:disabled {
-            cursor: not-allowed;
-            opacity: 0.72;
-        }
-
-        .rating-summary {
-            margin-top: 14px;
-            font-size: 13px;
+        .member-number {
             color: var(--text-secondary);
+            font-size: 12px;
+            letter-spacing: 0.2px;
         }
-
-        /* ============================================
-           TOAST NOTIFICATION
-           ============================================ */
-        .toast-container {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .member-footer {
+            margin-top: 20px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.7;
         }
-
-        .toast {
+        .member-glare {
+            position: absolute;
+            inset: -40%;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2), transparent 38%);
+            opacity: 0;
+            pointer-events: none;
+            transform: translate3d(-10%, -10%, 0);
+            transition: opacity var(--transition-fast);
+        }
+        .member-card:hover .member-glare {
+            opacity: 1;
+        }
+        .group-caption {
+            text-align: center;
+            margin-top: -6px;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        .btn-show-all {
             display: flex;
             align-items: center;
             gap: 10px;
+            margin: 0 auto;
+            width: fit-content;
+            padding: 13px 28px;
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            color: var(--blue-secondary);
+            font-size: 14px; font-weight: 500;
+            cursor: pointer; transition: var(--transition-normal);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.12);
+        }
+        .btn-show-all:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--blue-primary);
+            color: var(--text-primary);
+            box-shadow: 0 0 26px rgba(59, 130, 246, 0.26);
+            transform: translateY(-2px) scale(1.01);
+        }
+
+        /* ========== MODAL OVERLAY ========== */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 2000;
+            background: rgba(6, 10, 20, 0.72);
+            backdrop-filter: blur(0px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; opacity: 0; visibility: hidden;
+            transition: opacity var(--transition-normal), visibility var(--transition-normal), backdrop-filter var(--transition-normal);
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; backdrop-filter: blur(14px); }
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px; padding: 40px;
+            max-width: 900px; width: 100%;
+            transform: scale(0.82) translateY(32px);
+            transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s ease;
+            opacity: 0;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0); opacity: 1;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 32px; padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-title { font-size: 24px; font-weight: 700; }
+        .modal-close {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: none; color: var(--text-secondary);
+            font-size: 20px; cursor: pointer;
+            transition: var(--transition-fast);
+        }
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+        .modal-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+        .modal-member {
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 18px; padding: 22px 20px 18px;
+            text-align: center; transition: var(--transition-normal);
+            animation: modalBounce 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            opacity: 0; transform: scale(0.82) translateY(24px);
+        }
+        @keyframes modalBounce {
+            65% { opacity: 1; transform: scale(1.03) translateY(-4px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-member:nth-child(1) { animation-delay: 0.1s; }
+        .modal-member:nth-child(2) { animation-delay: 0.2s; }
+        .modal-member:nth-child(3) { animation-delay: 0.3s; }
+        .modal-member:nth-child(4) { animation-delay: 0.4s; }
+        .modal-avatar {
+            width: 60px; height: 60px; margin: 0 auto 12px;
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-neon));
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 700; color: #fff;
+        }
+        .modal-name { font-weight: 600; margin-bottom: 4px; }
+        .modal-number { color: var(--text-muted); font-size: 13px; }
+        .modal-footer {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* ========== THEORY GRID ========== */
+        .theory-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .theory-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px; padding: 24px;
+            transition: var(--transition-normal);
+            opacity: 0; transform: translateY(20px);
+        }
+        .theory-card.visible { opacity: 1; transform: translateY(0); }
+        .theory-card:hover {
+            border-color: var(--blue-primary);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-4px);
+        }
+        .theory-icon {
+            width: 48px; height: 48px; margin-bottom: 16px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        .theory-title { font-weight: 600; margin-bottom: 8px; font-size: 16px; }
+        .theory-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+        /* ========== TOOLS GRID ========== */
+        .tools-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+        }
+        .tool-item {
+            display: flex; align-items: center; justify-content: center;
+            text-align: center;
+            min-height: 88px;
+            padding: 18px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: var(--transition-normal);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .tool-item:hover {
+            border-color: var(--blue-primary);
+            background: rgba(59, 130, 246, 0.05);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(37, 99, 235, 0.14);
+        }
+        .tool-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top, rgba(96, 165, 250, 0.12), transparent 60%);
+            opacity: 0;
+            transition: opacity var(--transition-normal);
+            pointer-events: none;
+        }
+        .tool-item:hover::before {
+            opacity: 1;
+        }
+        .tool-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--blue-primary), var(--blue-neon));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; flex-shrink: 0;
+        }
+        .tool-name {
+            position: relative;
+            z-index: 1;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.45;
+            color: var(--text-primary);
+        }
+        .tool-card-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(4, 10, 22, 0.76);
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity var(--transition-normal), visibility var(--transition-normal), backdrop-filter var(--transition-normal);
+        }
+        .tool-card-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+        .tool-reveal-card {
+            position: relative;
+            width: min(360px, calc(100vw - 32px));
+            padding: 18px;
+            border-radius: 28px;
+            background:
+                linear-gradient(180deg, rgba(15, 22, 41, 0.96), rgba(10, 14, 26, 0.98)),
+                linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(0, 180, 216, 0.08));
+            border: 1px solid rgba(96, 165, 250, 0.18);
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(59, 130, 246, 0.08);
+            transform: scale(0.82) translateY(28px);
+            opacity: 0;
+            overflow: hidden;
+            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.34s ease;
+        }
+        .tool-card-overlay.active .tool-reveal-card {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        .tool-reveal-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(140deg, rgba(96, 165, 250, 0.18), transparent 38%, rgba(139, 92, 246, 0.08));
+            pointer-events: none;
+        }
+        .tool-reveal-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 2;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+        .tool-reveal-close:hover {
+            color: var(--text-primary);
+            border-color: rgba(96, 165, 250, 0.28);
+            background: rgba(59, 130, 246, 0.12);
+        }
+        .tool-reveal-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            text-align: center;
+            padding: 18px 12px 10px;
+        }
+        .tool-reveal-image-wrap {
+            width: 100%;
+            padding: 18px;
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+        .tool-reveal-image {
+            display: block;
+            width: min(220px, 100%);
+            max-height: 220px;
+            object-fit: contain;
+            margin: 0 auto;
+            filter: drop-shadow(0 14px 28px rgba(2, 6, 23, 0.28));
+        }
+        .tool-reveal-name {
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1.25;
+            letter-spacing: -0.5px;
+            color: #eef6ff;
+        }
+
+        /* ========== AUDIO CONTROL ========== */
+        .audio-control {
+            position: fixed; right: 24px; bottom: 24px; z-index: 1500;
+            width: 54px; height: 54px; border-radius: 50%;
+            background: rgba(15, 22, 41, 0.72);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: transform var(--transition-fast), background var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
+            box-shadow: 0 12px 30px rgba(2, 6, 23, 0.3);
+        }
+        .audio-control:hover {
+            border-color: var(--blue-primary);
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.14), 0 16px 34px rgba(37, 99, 235, 0.18);
+            transform: translateY(-1px);
+        }
+        .audio-control.active {
+            border-color: var(--blue-primary);
+            background: rgba(15, 22, 41, 0.9);
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.16), 0 0 26px rgba(59, 130, 246, 0.22), 0 18px 38px rgba(37, 99, 235, 0.18);
+            transform: scale(1.04);
+        }
+        .audio-icon {
+            width: 21px; height: 21px; color: var(--text-secondary);
+            transition: color var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
+        }
+        .audio-control.active .audio-icon { color: var(--blue-secondary); }
+        .audio-control.muted .audio-icon { opacity: 0.55; }
+        .audio-control:active {
+            transform: scale(0.96);
+        }
+
+        /* ========== AUDIO VISUALIZER POPUP ========== */
+        .audio-popup {
+            position: fixed; top: 92px; left: 50%; z-index: 1400;
+            background: rgba(15, 22, 41, 0.58);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 999px;
+            padding: 8px 14px;
+            display: flex; align-items: center; gap: 12px;
+            min-width: 220px;
+            max-width: 270px;
+            box-shadow: 0 12px 28px rgba(2, 6, 23, 0.22);
+            opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.98);
+            transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: none;
+        }
+        .audio-popup.active {
+            opacity: 1; transform: translateX(-50%) translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .popup-title {
+            font-size: 12px; font-weight: 600; color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .visualizer {
+            display: flex; align-items: flex-end; gap: 3px; height: 20px;
+        }
+        .visualizer-bar {
+            width: 3px; height: 4px; border-radius: 999px;
+            background: linear-gradient(180deg, rgba(147, 197, 253, 0.95), rgba(0, 180, 216, 0.9));
+            opacity: 0.3;
+            transform-origin: bottom center;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.18);
+        }
+
+        /* ========== TOAST ========== */
+        .toast-container {
+            position: fixed; bottom: 30px; right: 30px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            display: flex; align-items: center; gap: 10px;
             padding: 14px 20px;
             background: rgba(15, 22, 41, 0.95);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-color);
             border-radius: 14px;
             color: var(--text-primary);
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            font-size: 14px; font-weight: 500;
+            box-shadow: var(--shadow-card);
             animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             min-width: 250px;
         }
-
-        .toast.toast-success {
-            border-left: 3px solid #10b981;
-        }
-
-        .toast.toast-info {
-            border-left: 3px solid var(--blue-primary);
-        }
-
+        .toast.toast-success { border-left: 3px solid #10b981; }
+        .toast.toast-info { border-left: 3px solid var(--blue-primary); }
         .toast-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+            width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
-
-        .toast-success .toast-icon {
-            background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
-        }
-
-        .toast-info .toast-icon {
-            background: rgba(59, 130, 246, 0.15);
-            color: var(--blue-secondary);
-        }
-
-        .toast.removing {
-            animation: toastOut 0.3s ease forwards;
-        }
-
+        .toast-success .toast-icon { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .toast-info .toast-icon { background: rgba(59, 130, 246, 0.15); color: var(--blue-secondary); }
+        .toast.removing { animation: toastOut 0.3s ease forwards; }
         @keyframes toastIn {
-            from {
-                opacity: 0;
-                transform: translateX(40px) scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
+            from { opacity: 0; transform: translateX(40px) scale(0.9); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
         }
-
         @keyframes toastOut {
-            to {
-                opacity: 0;
-                transform: translateX(40px) scale(0.9);
-            }
+            to { opacity: 0; transform: translateX(40px) scale(0.9); }
         }
 
-        /* ============================================
-           FOOTER
-           ============================================ */
+        /* ========== FOOTER ========== */
         .footer {
-            text-align: center;
-            padding: 40px 0;
-            margin-top: 40px;
+            text-align: center; padding: 40px 0; margin-top: 40px;
             border-top: 1px solid var(--border-color);
         }
-
-        .footer p {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
+        .footer p { font-size: 13px; color: var(--text-muted); }
         .footer a {
-            color: var(--blue-secondary);
-            text-decoration: none;
+            color: var(--blue-secondary); text-decoration: none;
             transition: color var(--transition-fast);
         }
+        .footer a:hover { color: var(--text-primary); }
 
-        .footer a:hover {
-            color: var(--text-primary);
-        }
-
-        /* ============================================
-           STATS SECTION
-           ============================================ */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-top: 24px;
-        }
-
-        .stat-card {
-            text-align: center;
-            padding: 20px 16px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 14px;
-            transition: var(--transition-normal);
-        }
-
-        .stat-card:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-2px);
-        }
-
-        .stat-number {
-            font-size: 28px;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--blue-secondary), var(--blue-neon));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 4px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* ============================================
-           RESPONSIVE
-           ============================================ */
-        @media (max-width: 640px) {
-            .glass-card {
-                padding: 20px;
-                border-radius: 16px;
-            }
-
-            .code-body {
-                padding: 14px;
-            }
-
-            .code-body pre {
-                font-size: 12px;
-            }
-
-            .hero h1 {
-                font-size: 28px;
-            }
-
-            .hero p {
-                font-size: 15px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-
-            .header-badge {
-                display: none;
-            }
-
-            .toast-container {
-                left: 16px;
-                right: 16px;
-                bottom: 16px;
-            }
-
-            .toast {
-                min-width: auto;
-                width: 100%;
-            }
-
-            .btn-download {
-                padding: 14px 28px;
-                font-size: 14px;
-            }
-
-            .editor-filename {
-                font-size: 11px;
-            }
-        }
-
-        @media (max-width: 380px) {
-            .container {
-                padding: 0 16px;
-            }
-
-            .glass-card {
-                padding: 16px;
-            }
-
-            .code-body pre {
-                font-size: 11px;
-            }
-        }
-
-        /* ============================================
-           UTILITY ANIMATIONS
-           ============================================ */
-        .fade-in {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Cursor blink for code */
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
-        }
-
-        .cursor-blink {
-            animation: blink 1s step-end infinite;
-        }
-
-        /* Ripple effect */
+        /* ========== UTILITIES ========== */
+        .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
         .ripple {
-            position: absolute;
-            border-radius: 50%;
+            position: absolute; border-radius: 50%;
             background: rgba(255, 255, 255, 0.15);
-            transform: scale(0);
-            animation: ripple-anim 0.6s ease-out;
+            transform: scale(0); animation: ripple-anim 0.6s ease-out;
             pointer-events: none;
         }
+        @keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
 
-        @keyframes ripple-anim {
-            to {
-                transform: scale(4);
-                opacity: 0;
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            section { padding: 60px 0; }
+            .hero { padding: 140px 0 80px; }
+            .hero h1 { font-size: 28px; }
+            .hero p { font-size: 15px; }
+            .hero-title-line + .hero-title-line {
+                margin-top: 2px;
             }
+            .header-inner {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .header-nav {
+                order: 3;
+                width: 100%;
+            }
+            .nav-menu {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .nav-link {
+                font-size: 12px;
+                padding: 9px 12px;
+            }
+            .glass-card { padding: 24px; border-radius: 16px; }
+            .code-body { padding: 14px; }
+            .code-body pre { font-size: 12px; }
+            .header-badge { display: none; }
+            .group-grid {
+                height: 362px;
+            }
+            .toast-container { left: 16px; right: 16px; bottom: 16px; }
+            .toast { min-width: auto; width: 100%; }
+            .btn-download { padding: 14px 28px; font-size: 14px; }
+            .modal-content { padding: 24px; }
+            .audio-control {
+                right: 18px;
+                bottom: 18px;
+            }
+            .audio-popup {
+                top: 82px;
+                left: 50%;
+                min-width: 0;
+                max-width: 236px;
+            }
+        }
+        @media (max-width: 480px) {
+            .container { padding: 0 16px; }
+            .glass-card { padding: 20px; }
+            .code-body pre { font-size: 11px; }
+            .hero-buttons { flex-direction: column; align-items: center; }
+            .btn-scroll { width: 100%; max-width: 280px; justify-content: center; }
+            .modal-grid { grid-template-columns: 1fr 1fr; }
+            .hero h1 {
+                line-height: 1.06;
+                letter-spacing: -1px;
+            }
+            .hero-title-line + .hero-title-line {
+                margin-top: 2px;
+            }
+            .hero-title-line.subtle-line {
+                font-size: 0.82em;
+            }
+            .member-card {
+                padding: 18px 14px 14px;
+                width: min(188px, calc(100% - 68px));
+                min-height: 292px;
+            }
+            .member-avatar {
+                width: 60px;
+                height: 60px;
+                border-radius: 20px;
+            }
+            .group-grid {
+                height: 324px;
+            }
+            .group-caption {
+                font-size: 12px;
+                line-height: 1.6;
+            }
+            .audio-control {
+                right: 14px;
+                bottom: 14px;
+                width: 50px;
+                height: 50px;
+            }
+            .audio-popup {
+                top: 78px;
+                left: 50%;
+                min-width: 0;
+                max-width: min(210px, calc(100vw - 28px));
+                padding: 7px 12px;
+                gap: 10px;
+            }
+            .btn-show-all {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ========== SCROLL INDICATOR ========== */
+        .scroll-indicator {
+            position: absolute; bottom: 30px; left: 50%;
+            transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center;
+            gap: 8px; color: var(--text-muted); font-size: 12px;
+            animation: bounce 2s infinite;
+        }
+        .scroll-indicator svg {
+            width: 24px; height: 24px; stroke: var(--text-muted);
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-10px); }
+            60% { transform: translateX(-50%) translateY(-5px); }
         }
     </style>
 </head>
 <body>
-
-    <!-- ==================== PRELOADER ==================== -->
+    <div class="scroll-progress" aria-hidden="true">
+        <div class="scroll-progress-bar" id="scrollProgressBar"></div>
+    </div>
+    <!-- Preloader -->
     <div class="preloader" id="preloader">
         <div class="preloader-spinner"></div>
-        <div class="preloader-text">Loading</div>
+        <div class="preloader-text">Loading Project</div>
     </div>
 
-    <!-- ==================== ANIMATED BACKGROUND ==================== -->
+    <!-- Animated Background -->
     <div class="bg-animated">
         <div class="bg-orb"></div>
         <div class="bg-orb"></div>
@@ -965,63 +1199,306 @@
         <canvas id="particleCanvas"></canvas>
     </div>
 
-    <!-- ==================== HEADER ==================== -->
+    <!-- Audio Control -->
+    <div class="audio-control" id="audioControl" title="Toggle Backsound">
+        <svg class="audio-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+    </div>
+
+    <!-- Audio Visualizer Popup -->
+    <div class="audio-popup" id="audioPopup">
+        <span class="popup-title">🎵 Backsound Project</span>
+        <div class="visualizer" id="visualizer"></div>
+    </div>
+
+    <!-- Header -->
     <header class="header" id="header">
         <div class="header-inner">
-            <a href="#" class="logo">
+            <a href="#hero" class="logo">
                 <div class="logo-icon">⚡</div>
-                <div class="logo-text">Script <span>Downloader</span></div>
+                <div class="logo-text">Project <span>Presenter</span></div>
             </a>
-            <div class="header-badge">v1.0.0</div>
+            <nav class="header-nav" aria-label="Navigasi utama">
+                <div class="nav-menu">
+                    <a class="nav-link active" href="#hero">Home</a>
+                    <a class="nav-link" href="#groupSection">Kelompok</a>
+                    <a class="nav-link" href="#backgroundSection">Latar Belakang</a>
+                    <a class="nav-link" href="#purposeSection">Tujuan</a>
+                    <a class="nav-link" href="#theorySection">Dasar Teori</a>
+                    <a class="nav-link" href="#toolsSection">Alat &amp; Bahan</a>
+                    <a class="nav-link" href="#codeSection">Script</a>
+                    <a class="nav-link" href="#conclusionSection">Kesimpulan</a>
+                </div>
+            </nav>
+            <div class="header-badge">v2.0 • Kelompok 1</div>
         </div>
     </header>
 
-    <!-- ==================== MAIN CONTENT ==================== -->
+    <!-- Main Content -->
     <main>
         <div class="container">
-
-            <!-- Hero Section -->
-            <section class="hero">
+            <!-- 1. HERO SECTION -->
+            <section class="hero" id="hero">
                 <div class="hero-content">
                     <div class="hero-badge">
                         <span class="hero-badge-dot"></span>
-                        Ready to use
+                        Proyek Kelompok • Teknologi Pendidikan
                     </div>
                     <h1>
-                        Download Script<br>
-                        <span class="gradient-text">Dalam Sekejap</span>
+                        <span class="hero-title-line">PRESENSI SHALAT BERJAMAAH OTOMATIS</span>
+                        <span class="hero-title-line accent-line"><span class="accent-text">DENGAN FACE RECOGNITION</span></span>
+                        <span class="hero-title-line subtle-line">BERBASIS ESP32-CAM DAN GOOGLE SHEET</span>
                     </h1>
                     <p>
-                        Salin atau unduh script favorit kamu dengan mudah. 
-                        Desain modern, cepat, dan siap pakai untuk project-mu.
+                        Sistem presensi otomatis yang mengintegrasikan ESP32-CAM, Face Recognition, IoT, dan Google Sheet untuk memantau kehadiran shalat berjamaah secara real-time, akurat, dan efisien.
                     </p>
+                    <div class="hero-buttons">
+                        <a href="#codeSection" class="btn-scroll">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                            Lihat Script
+                        </a>
+                        <a href="#downloadSection" class="btn-scroll">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Unduh Project
+                        </a>
+                    </div>
+                </div>
+                <div class="scroll-indicator">
+                    <span>Scroll</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+            </section>
 
-                    <!-- Stats -->
-                    <div class="stats-grid fade-in" data-delay="200">
-                        <div class="stat-card">
-                            <div class="stat-number" id="statCopies">...</div>
-                            <div class="stat-label">Copies</div>
+            <!-- 2. KELOMPOK SECTION -->
+            <section class="glass-card fade-in" id="groupSection">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-icon">👥</div>
+                        <div>
+                            <div class="card-title">Anggota Kelompok</div>
+                            <div class="card-subtitle">Kelompok 1 • XI TKJ A</div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-number" id="statDownloads">...</div>
-                            <div class="stat-label">Downloads</div>
+                    </div>
+                </div>
+                <div class="group-grid">
+                    <div class="member-card">
+                        <div class="member-glare"></div>
+                        <div class="member-avatar">BZ</div>
+                        <div class="member-name">BERLIAN ZAHROTUL JANNAH</div>
+                        <div class="member-number">Nomor Absen: 10</div>
+                        <div class="member-footer">Kelas: XI TKJ A<br>SMK N 1 Ngawen</div>
+                    </div>
+                    <div class="member-card">
+                        <div class="member-glare"></div>
+                        <div class="member-avatar">DW</div>
+                        <div class="member-name">DAFFA WAHYU SUDIBYO</div>
+                        <div class="member-number">Nomor Absen: 11</div>
+                        <div class="member-footer">Kelas: XI TKJ A<br>SMK N 1 Ngawen</div>
+                    </div>
+                    <div class="member-card">
+                        <div class="member-glare"></div>
+                        <div class="member-avatar">EP</div>
+                        <div class="member-name">ELVITA PRATAMA</div>
+                        <div class="member-number">Nomor Absen: 14</div>
+                        <div class="member-footer">Kelas: XI TKJ A<br>SMK N 1 Ngawen</div>
+                    </div>
+                    <div class="member-card">
+                        <div class="member-glare"></div>
+                        <div class="member-avatar">SK</div>
+                        <div class="member-name">SHIFA KHOIRUNNISA</div>
+                        <div class="member-number">Nomor Absen: 32</div>
+                        <div class="member-footer">Kelas: XI TKJ A<br>SMK N 1 Ngawen</div>
+                    </div>
+                </div>
+                <div class="group-caption">Geser ke kiri atau kanan untuk memilih anggota. Jika dibiarkan, showcase akan berjalan otomatis.</div>
+                <button class="btn-show-all" id="btnShowAll">✨ Show All Anggota</button>
+            </section>
+
+            <!-- Modal Overlay for Group -->
+            <div class="modal-overlay" id="groupModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="modal-title">👥 Anggota Kelompok 1</div>
+                        <button class="modal-close" id="modalClose">&times;</button>
+                    </div>
+                    <div class="modal-grid">
+                        <div class="modal-member">
+                            <div class="modal-avatar">BZ</div>
+                            <div class="modal-name">BERLIAN ZAHROTUL JANNAH</div>
+                            <div class="modal-number">Absen: 10</div>
+                            <div class="modal-footer">Kelas: XI TKJ A<br>SMK N 1 Ngawen</div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-number" id="statStars">...</div>
-                            <div class="stat-label">Rating</div>
+                        <div class="modal-member">
+                            <div class="modal-avatar">DW</div>
+                            <div class="modal-name">DAFFA WAHYU SUDIBYO</div>
+                            <div class="modal-number">Absen: 11</div>
+                            <div class="modal-footer">Kelas: XI TKJ A<br>SMK N 1 Ngawen</div>
                         </div>
+                        <div class="modal-member">
+                            <div class="modal-avatar">EP</div>
+                            <div class="modal-name">ELVITA PRATAMA</div>
+                            <div class="modal-number">Absen: 14</div>
+                            <div class="modal-footer">Kelas: XI TKJ A<br>SMK N 1 Ngawen</div>
+                        </div>
+                        <div class="modal-member">
+                            <div class="modal-avatar">SK</div>
+                            <div class="modal-name">SHIFA KHOIRUNNISA</div>
+                            <div class="modal-number">Absen: 32</div>
+                            <div class="modal-footer">Kelas: XI TKJ A<br>SMK N 1 Ngawen</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. LATAR BELAKANG -->
+            <section class="glass-card fade-in" id="backgroundSection">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-icon">📚</div>
+                        <div>
+                            <div class="card-title">Latar Belakang</div>
+                            <div class="card-subtitle">Mengapa proyek ini dibuat?</div>
+                        </div>
+                    </div>
+                </div>
+                <p style="color: var(--text-secondary); line-height: 1.8; text-align: justify;">
+                    Kehadiran dalam shalat berjamaah merupakan bagian penting dari pembentukan karakter religius siswa. Namun, pencatatan manual seringkali tidak efisien, rentan kesalahan, dan sulit dipantau secara real-time. 
+                    Dengan perkembangan teknologi IoT dan kecerdasan buatan, kami mengembangkan sistem presensi otomatis berbasis ESP32-CAM yang mampu mengenali wajah siswa secara akurat, mencatat data ke Google Sheet secara instan, dan menyediakan laporan yang dapat diakses kapan saja oleh guru dan pihak sekolah.
+                </p>
+            </section>
+
+            <!-- 4. TUJUAN & MANFAAT -->
+            <section class="glass-card fade-in" id="purposeSection">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-icon">🎯</div>
+                        <div>
+                            <div class="card-title">Tujuan & Manfaat</div>
+                            <div class="card-subtitle">Apa yang ingin dicapai?</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px;">
+                        <div style="font-weight: 600; margin-bottom: 12px; color: var(--blue-secondary);">🎯 Tujuan</div>
+                        <ul style="color: var(--text-secondary); font-size: 14px; line-height: 1.7; padding-left: 20px;">
+                            <li>Mengotomatisasi pencatatan presensi shalat berjamaah</li>
+                            <li>Menerapkan teknologi Face Recognition berbasis ESP32-CAM</li>
+                            <li>Mengintegrasikan IoT dengan Google Sheet untuk monitoring real-time</li>
+                            <li>Meningkatkan kedisiplinan dan transparansi data kehadiran</li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px;">
+                        <div style="font-weight: 600; margin-bottom: 12px; color: var(--blue-secondary);">✨ Manfaat</div>
+                        <ul style="color: var(--text-secondary); font-size: 14px; line-height: 1.7; padding-left: 20px;">
+                            <li>Efisiensi waktu dalam pendataan kehadiran</li>
+                            <li>Data presensi tersimpan rapi dan dapat diakses kapan saja</li>
+                            <li>Mendorong partisipasi aktif siswa dalam ibadah berjamaah</li>
+                            <li>Sebagai media pembelajaran teknologi IoT dan AI untuk siswa</li>
+                        </ul>
                     </div>
                 </div>
             </section>
 
-            <!-- Code Block Section -->
-            <section class="glass-card" id="codeSection">
+            <!-- 5. DASAR TEORI -->
+            <section class="glass-card fade-in" id="theorySection">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-icon">🧠</div>
+                        <div>
+                            <div class="card-title">Dasar Teori</div>
+                            <div class="card-subtitle">Konsep teknologi yang digunakan</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="theory-grid">
+                    <div class="theory-card">
+                        <div class="theory-icon">🌐</div>
+                        <div class="theory-title">Internet of Things (IoT)</div>
+                        <div class="theory-desc">Jaringan perangkat fisik yang terhubung ke internet untuk mengumpulkan dan bertukar data secara otomatis.</div>
+                    </div>
+                    <div class="theory-card">
+                        <div class="theory-icon">👁️</div>
+                        <div class="theory-title">Face Recognition</div>
+                        <div class="theory-desc">Teknologi AI yang mengidentifikasi atau memverifikasi seseorang dari gambar/video wajah menggunakan algoritma machine learning.</div>
+                    </div>
+                    <div class="theory-card">
+                        <div class="theory-icon">📷</div>
+                        <div class="theory-title">ESP32-CAM</div>
+                        <div class="theory-desc">Mikrokontroler murah dengan modul kamera, WiFi, dan Bluetooth, ideal untuk proyek IoT berbasis visi komputer.</div>
+                    </div>
+                    <div class="theory-card">
+                        <div class="theory-icon">📊</div>
+                        <div class="theory-title">Google Sheet</div>
+                        <div class="theory-desc">Spreadsheet online yang dapat diintegrasikan dengan Apps Script untuk otomatisasi pencatatan dan analisis data.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. ALAT & BAHAN -->
+            <section class="glass-card fade-in" id="toolsSection">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-icon">🧰</div>
+                        <div>
+                            <div class="card-title">Alat & Bahan</div>
+                            <div class="card-subtitle">Komponen yang digunakan dalam proyek klik salah satu alat & bahan</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tools-grid">
+                    <div class="tool-item" data-tool-name="ESP32-CAM Module" data-tool-image="gambar/esp32-cam.jpg">
+                        <div class="tool-name">ESP32-CAM Module</div>
+                    </div>
+                    <div class="tool-item" data-tool-name="FTDI" data-tool-image="gambar/ftdi.jpg">
+                        <div class="tool-name">FTDI</div>
+                    </div>
+                    <div class="tool-item" data-tool-name="Adaptor Daya 5V" data-tool-image="gambar/adaptor-5v.jpg">
+                        <div class="tool-name">Adaptor Daya 5V</div>
+                    </div>
+                    <div class="tool-item" data-tool-name="Kabel Jumper Femail to Femail" data-tool-image="gambar/jumper-female-female..jpg">
+                        <div class="tool-name">Kabel Jumper Femail to Femail</div>
+                    </div>
+                    <div class="tool-item" data-tool-name="Komputer atau Laptop" data-tool-image="gambar/laptop.jpg">
+                        <div class="tool-name">Komputer atau Laptop</div>
+                    </div>
+                    <div class="tool-item" data-tool-name="Arduino IDE" data-tool-image="gambar/arduino-ide.jpg">
+                        <div class="tool-name">Arduino IDE</div>
+                    </div>
+                    <div class="tool-item" data-tool-name="Akun Google Sheet" data-tool-image="gambar/google-sheet.jpg">
+                        <div class="tool-name">Akun Google Sheet</div>
+                    </div>
+                    <div class="tool-item" data-tool-name="Wifi dengan frekuensi 2,4GHz" data-tool-image="gambar/wifi-24ghz.jpg">
+                        <div class="tool-name">Wifi dengan frekuensi 2,4GHz</div>
+                    </div>
+                    <div class="tool-item" data-tool-name="Kabel Data USB-Mini" data-tool-image="gambar/kabel-data-usbmini.jpg">
+                        <div class="tool-name">Kabel Data USB-Mini</div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="tool-card-overlay" id="toolCardOverlay">
+                <div class="tool-reveal-card" role="dialog" aria-modal="true" aria-labelledby="toolRevealName">
+                    <button class="tool-reveal-close" id="toolRevealClose" aria-label="Tutup kartu alat">&times;</button>
+                    <div class="tool-reveal-inner">
+                        <div class="tool-reveal-image-wrap">
+                            <img class="tool-reveal-image" id="toolRevealImage" alt="">
+                        </div>
+                        <div class="tool-reveal-name" id="toolRevealName"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. SCRIPT & DOWNLOAD (ORIGINAL) -->
+            <section class="glass-card fade-in" id="codeSection">
                 <div class="card-header">
                     <div class="card-title-group">
                         <div class="card-icon">📝</div>
                         <div>
-                            <div class="card-title" id="scriptTitle">Script Google Sheet</div>
-                            <div class="card-subtitle">Google Apps Script Preview</div>
+                            <div class="card-title">Script Preview</div>
+                            <div class="card-subtitle">google_sheet.gs • Google Apps Script</div>
                         </div>
                     </div>
                     <div class="editor-actions">
@@ -1034,8 +1511,6 @@
                         </button>
                     </div>
                 </div>
-
-                <!-- VSCode-like Code Editor -->
                 <div class="code-editor">
                     <div class="editor-topbar">
                         <div class="editor-dots">
@@ -1043,53 +1518,28 @@
                             <div class="editor-dot yellow"></div>
                             <div class="editor-dot green"></div>
                         </div>
-                        <span class="editor-filename" id="scriptFileLabel">google_sheet.gs</span>
+                        <span class="editor-filename">google_sheet.gs</span>
                         <span style="font-size: 12px; color: var(--text-muted);">Google Apps Script</span>
                     </div>
                     <div class="code-body">
-                        <pre id="codeContent"><code><span class="code-line"><span class="token-comment">// 🚀 Simple Utility Script</span></span>
-<span class="code-line"><span class="token-comment">// Author: Script Downloader</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="token-keyword">class</span> <span class="token-function">ScriptDownloader</span> <span class="token-bracket">{</span></span>
-<span class="code-line">    <span class="token-function">constructor</span><span class="token-punctuation">(</span><span class="token-variable">name</span><span class="token-punctuation">)</span> <span class="token-bracket">{</span></span>
-<span class="code-line">        <span class="token-keyword">this</span>.<span class="token-property">name</span> = <span class="token-variable">name</span>;</span>
-<span class="code-line">        <span class="token-keyword">this</span>.<span class="token-property">version</span> = <span class="token-string">'1.0.0'</span>;</span>
-<span class="code-line">        <span class="token-keyword">this</span>.<span class="token-property">scripts</span> = <span class="token-keyword">new</span> <span class="token-function">Map</span><span class="token-punctuation">()</span>;</span>
-<span class="code-line">    <span class="token-bracket">}</span></span>
-<span class="code-line"></span>
-<span class="code-line">    <span class="token-keyword">async</span> <span class="token-function">download</span><span class="token-punctuation">(</span><span class="token-variable">scriptName</span><span class="token-punctuation">)</span> <span class="token-bracket">{</span></span>
-<span class="code-line">        <span class="token-keyword">const</span> <span class="token-variable">script</span> = <span class="token-keyword">this</span>.<span class="token-property">scripts</span>.<span class="token-function">get</span><span class="token-punctuation">(</span><span class="token-variable">scriptName</span><span class="token-punctuation">)</span>;</span>
-<span class="code-line">        <span class="token-keyword">if</span> <span class="token-punctuation">(</span>!<span class="token-variable">script</span><span class="token-punctuation">)</span> <span class="token-keyword">throw</span> <span class="token-keyword">new</span> <span class="token-function">Error</span><span class="token-punctuation">(</span><span class="token-string">'Not found'</span><span class="token-punctuation">)</span>;</span>
-<span class="code-line">        <span class="token-keyword">return</span> <span class="token-variable">script</span>;</span>
-<span class="code-line">    <span class="token-bracket">}</span></span>
-<span class="code-line"></span>
-<span class="code-line">    <span class="token-function">addScript</span><span class="token-punctuation">(</span><span class="token-variable">name</span>, <span class="token-variable">code</span><span class="token-punctuation">)</span> <span class="token-bracket">{</span></span>
-<span class="code-line">        <span class="token-keyword">this</span>.<span class="token-property">scripts</span>.<span class="token-function">set</span><span class="token-punctuation">(</span><span class="token-variable">name</span>, <span class="token-variable">code</span><span class="token-punctuation">)</span>;</span>
-<span class="code-line">        console.<span class="token-function">log</span><span class="token-punctuation">(</span><span class="token-string">`✅ Added: ${</span><span class="token-variable">name</span><span class="token-string">}`</span><span class="token-punctuation">)</span>;</span>
-<span class="code-line">    <span class="token-bracket">}</span></span>
-<span class="code-line"><span class="token-bracket">}</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="token-keyword">const</span> <span class="token-variable">app</span> = <span class="token-keyword">new</span> <span class="token-function">ScriptDownloader</span><span class="token-punctuation">(</span><span class="token-string">'MyApp'</span><span class="token-punctuation">)</span>;</span>
-<span class="code-line"><span class="token-variable">app</span>.<span class="token-function">addScript</span><span class="token-punctuation">(</span><span class="token-string">'utils'</span>, <span class="token-string">'console.log("Hello!")'</span><span class="token-punctuation">)</span>;</span></code></pre>
+                        <pre id="codeContent"></pre>
                     </div>
                 </div>
             </section>
 
-            <!-- Download Section -->
-            <section class="glass-card" id="downloadSection">
+            <section class="glass-card fade-in" id="downloadSection">
                 <div class="download-section">
                     <div class="card-title-group" style="justify-content: center; margin-bottom: 20px;">
                         <div class="card-icon">💾</div>
                         <div>
-                            <div class="card-title">Download File</div>
-                            <div class="card-subtitle">Klik tombol di bawah untuk mengunduh zip project</div>
+                            <div class="card-title">Download Project</div>
+                            <div class="card-subtitle">Klik tombol di bawah untuk mengunduh file lengkap</div>
                         </div>
                     </div>
-
                     <div class="download-info">
                         <div class="info-chip">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                            <span id="downloadFileName">p_ESP32_absensi.zip</span>
+                            p_ESP32_absensi.zip
                         </div>
                         <div class="info-chip">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
@@ -1100,212 +1550,75 @@
                             Google Sheet + ESP32
                         </div>
                     </div>
-
-                    <button class="btn-download" id="btnDownload" onclick="downloadFile()">
+                    <a class="btn-download" id="btnDownload" href="download/p_ESP32_absensi.zip" download="p_ESP32_absensi.zip">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                             <polyline points="7 10 12 15 17 10"/>
                             <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
-                        <span id="downloadText">Download File</span>
-                    </button>
+                        <span>Download File</span>
+                    </a>
+                </div>
+            </section>
 
-                    <div class="rating-panel">
-                        <div class="rating-title">Kasih rating untuk script ini</div>
-                        <div class="rating-stars" id="ratingStars">
-                            <button class="rating-star" type="button" data-rating="1" aria-label="Rate 1 star">★</button>
-                            <button class="rating-star" type="button" data-rating="2" aria-label="Rate 2 stars">★</button>
-                            <button class="rating-star" type="button" data-rating="3" aria-label="Rate 3 stars">★</button>
-                            <button class="rating-star" type="button" data-rating="4" aria-label="Rate 4 stars">★</button>
-                            <button class="rating-star" type="button" data-rating="5" aria-label="Rate 5 stars">★</button>
+            <!-- 8. KESIMPULAN -->
+            <section class="glass-card fade-in" id="conclusionSection">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <div class="card-icon">✅</div>
+                        <div>
+                            <div class="card-title">Kesimpulan</div>
+                            <div class="card-subtitle">Hasil dan pembelajaran proyek</div>
                         </div>
-                        <div class="rating-summary" id="ratingSummary">Mengambil rating dari server bot...</div>
                     </div>
+                </div>
+                <p style="color: var(--text-secondary); line-height: 1.8; text-align: justify;">
+                    Proyek ini berhasil mengintegrasikan ESP32-CAM, Face Recognition, dan Google Sheet untuk menciptakan sistem presensi shalat berjamaah yang otomatis, akurat, dan mudah diakses. 
+                    Melalui proyek ini, kami tidak hanya mempelajari implementasi teknologi IoT dan AI secara praktis, tetapi juga mengembangkan kemampuan kolaborasi, pemecahan masalah, dan presentasi. 
+                    Sistem ini diharapkan dapat menjadi inspirasi bagi pengembangan teknologi pendidikan yang relevan dengan kebutuhan sekolah modern.
+                </p>
+            </section>
+
+            <!-- 9. PENUTUP -->
+            <section class="glass-card fade-in" style="text-align: center;">
+                <div class="card-title-group" style="justify-content: center; margin-bottom: 24px;">
+                    <div class="card-icon">🙏</div>
+                    <div>
+                        <div class="card-title">Terima Kasih</div>
+                        <div class="card-subtitle">Sesi Tanya Jawab</div>
+                    </div>
+                </div>
+                <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 16px;">
+                    Presentasi proyek kami telah selesai.<br>
+                    Kami siap menerima pertanyaan, saran, dan masukan dari Bapak/Ibu guru serta teman-teman sekalian.
+                </p>
+                <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                    <span style="padding: 8px 20px; background: rgba(59,130,246,0.1); border: 1px solid var(--border-color); border-radius: 50px; font-size: 13px; color: var(--blue-secondary);">❓ Tanya Jawab</span>
+                    <span style="padding: 8px 20px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 50px; font-size: 13px; color: #34d399;">💬 Diskusi</span>
+                    <span style="padding: 8px 20px; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); border-radius: 50px; font-size: 13px; color: #a78bfa;">📝 Evaluasi</span>
                 </div>
             </section>
 
             <!-- Footer -->
             <footer class="footer fade-in">
                 <p>
-                    Dibuat dengan 💙 oleh <a href="#">Script Downloader</a> &mdash; © 2026
+                    Dibuat dengan 💙 oleh <strong>Kelompok 1</strong> • Presentasi Proyek Sekolah<br>
+                    © 2026 • ESP32-CAM + Google Sheet + Face Recognition
                 </p>
             </footer>
-
         </div>
     </main>
 
-    <!-- ==================== TOAST CONTAINER ==================== -->
+    <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- ==================== JAVASCRIPT ==================== -->
+    <!-- Audio Element (hidden) -->
+    <audio id="backsound" loop>
+        <source src="backsound/backsound.mp3" type="audio/mpeg">
+    </audio>
+
     <script>
-        const API_BASE_URL = window.SCRIPT_API_BASE_URL || 'http://127.0.0.1:8787';
-        const LOCAL_RATING_KEY = 'script_downloader_rating_v1';
-
-        /* ============================================
-           PRELOADER
-           ============================================ */
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                document.getElementById('preloader').classList.add('hidden');
-                // Trigger fade-in animations
-                initScrollAnimations();
-                initRatingButtons();
-                loadWebStats();
-            }, 800);
-        });
-
-        /* ============================================
-           PARTICLE ANIMATION (Canvas)
-           ============================================ */
-        const canvas = document.getElementById('particleCanvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        let mouse = { x: null, y: null };
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        // Track mouse
-        document.addEventListener('mousemove', (e) => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-        });
-
-        // Particle class
-        class Particle {
-            constructor() {
-                this.reset();
-            }
-
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2 + 0.5;
-                this.speedX = (Math.random() - 0.5) * 0.5;
-                this.speedY = (Math.random() - 0.5) * 0.5;
-                this.opacity = Math.random() * 0.5 + 0.1;
-            }
-
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-
-                // Mouse interaction
-                if (mouse.x !== null) {
-                    const dx = mouse.x - this.x;
-                    const dy = mouse.y - this.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 120) {
-                        this.x -= dx * 0.01;
-                        this.y -= dy * 0.01;
-                    }
-                }
-
-                // Wrap around edges
-                if (this.x < 0) this.x = canvas.width;
-                if (this.x > canvas.width) this.x = 0;
-                if (this.y < 0) this.y = canvas.height;
-                if (this.y > canvas.height) this.y = 0;
-            }
-
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(59, 130, 246, ${this.opacity})`;
-                ctx.fill();
-            }
-        }
-
-        // Create particles
-        function initParticles() {
-            const count = Math.min(80, Math.floor(window.innerWidth / 15));
-            particles = [];
-            for (let i = 0; i < count; i++) {
-                particles.push(new Particle());
-            }
-        }
-        initParticles();
-
-        // Draw connections between nearby particles
-        function drawConnections() {
-            for (let i = 0; i < particles.length; i++) {
-                for (let j = i + 1; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x;
-                    const dy = particles[i].y - particles[j].y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 150) {
-                        ctx.beginPath();
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.strokeStyle = `rgba(59, 130, 246, ${0.06 * (1 - dist / 150)})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.stroke();
-                    }
-                }
-            }
-        }
-
-        // Animation loop
-        function animateParticles() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            drawConnections();
-            requestAnimationFrame(animateParticles);
-        }
-        animateParticles();
-
-        /* ============================================
-           HEADER SCROLL EFFECT
-           ============================================ */
-        let lastScroll = 0;
-        window.addEventListener('scroll', () => {
-            const header = document.getElementById('header');
-            const scrollY = window.scrollY;
-
-            if (scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-            lastScroll = scrollY;
-        });
-
-        /* ============================================
-           SCROLL ANIMATIONS (Intersection Observer)
-           ============================================ */
-        function initScrollAnimations() {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const delay = entry.target.dataset.delay || 0;
-                        setTimeout(() => {
-                            entry.target.classList.add('visible');
-                        }, delay);
-                    }
-                });
-            }, {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            });
-
-            // Observe all fade-in elements and glass cards
-            document.querySelectorAll('.fade-in, .glass-card').forEach(el => {
-                observer.observe(el);
-            });
-        }
-
-        /* ============================================
-           COPY SCRIPT FUNCTION
-           ============================================ */
-        // Script content (plain text version)
+        // ========== GOOGLE APPS SCRIPT CONTENT (UNCHANGED) ==========
         const scriptContent = `const SHEET_DATA_SISWA = "DataSiswa"; // Nama sheet data siswa
 const SHEET_PRESENSI = "PresensiSholat"; // Nama sheet presensi
 const SHEET_PENGATURAN = "Pengaturan"; // Nama sheet pengaturan waktu
@@ -1484,191 +1797,421 @@ function jsonResponse(payload) { // Kirim response JSON
     .createTextOutput(JSON.stringify(payload)) // Ubah ke JSON string
     .setMimeType(ContentService.MimeType.JSON); // Set tipe JSON
 }`;
-        document.getElementById('codeContent').textContent = scriptContent;
 
-        async function apiRequest(path, options = {}) {
-            const response = await fetch(`${API_BASE_URL}${path}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(options.headers || {})
-                },
-                ...options
-            });
+        // ========== INITIALIZATION ==========
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('preloader').classList.add('hidden');
+                initScrollAnimations();
+                document.getElementById('codeContent').textContent = scriptContent;
+                initMemberCarousel();
+                initVisualizerBars();
+            }, 800);
+        });
 
-            const payload = await response.json();
-            if (!response.ok || !payload.ok) {
-                throw new Error(payload.error || 'Request gagal');
+        // ========== PARTICLE SYSTEM ==========
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouse = { x: null, y: null };
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        document.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.1;
             }
-
-            return payload.data;
-        }
-
-        function formatCompactNumber(value) {
-            return new Intl.NumberFormat('id-ID', {
-                notation: 'compact',
-                maximumFractionDigits: 1
-            }).format(Number(value || 0));
-        }
-
-        let currentWebMeta = {
-            scriptTitle: 'Script Google Sheet',
-            fileName: 'p_ESP32_absensi.zip'
-        };
-
-        function getDownloadPath() {
-            return `download/${currentWebMeta.fileName}`;
-        }
-
-        function applyWebMeta(stats) {
-            currentWebMeta.scriptTitle = stats.scriptTitle || currentWebMeta.scriptTitle;
-            currentWebMeta.fileName = stats.fileName || currentWebMeta.fileName;
-
-            document.getElementById('scriptTitle').textContent = currentWebMeta.scriptTitle;
-            document.getElementById('downloadFileName').textContent = currentWebMeta.fileName;
-            document.getElementById('scriptFileLabel').textContent = 'google_sheet.gs';
-        }
-
-        function renderStats(stats) {
-            applyWebMeta(stats);
-            document.getElementById('statCopies').textContent = formatCompactNumber(stats.copyCount);
-            document.getElementById('statDownloads').textContent = formatCompactNumber(stats.downloadCount);
-            document.getElementById('statStars').textContent = Number(stats.ratingAverage || 0).toFixed(1);
-            renderRatingSummary(stats);
-        }
-
-        function renderRatingSummary(stats) {
-            const ratingCount = Number(stats.ratingCount || 0);
-            const ratingAverage = Number(stats.ratingAverage || 0);
-            const userRating = localStorage.getItem(LOCAL_RATING_KEY);
-            const summary = document.getElementById('ratingSummary');
-
-            if (ratingCount === 0) {
-                summary.textContent = userRating
-                    ? `Rating kamu: ${userRating}/5. Belum ada rating lain masuk ke server.`
-                    : 'Belum ada rating masuk. Jadi yang pertama kasih nilai.';
-                return;
+            update() {
+                this.x += this.speedX; this.y += this.speedY;
+                if (mouse.x !== null) {
+                    const dx = mouse.x - this.x, dy = mouse.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 120) { this.x -= dx * 0.01; this.y -= dy * 0.01; }
+                }
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
             }
-
-            summary.textContent = userRating
-                ? `Rata-rata ${ratingAverage.toFixed(1)}/5 dari ${ratingCount} rating. Rating kamu: ${userRating}/5.`
-                : `Rata-rata ${ratingAverage.toFixed(1)}/5 dari ${ratingCount} rating.`;
-        }
-
-        async function loadWebStats() {
-            try {
-                const stats = await apiRequest('/api/web/stats');
-                renderStats(stats);
-                syncRatingButtonsFromStorage();
-            } catch (error) {
-                document.getElementById('statCopies').textContent = '0';
-                document.getElementById('statDownloads').textContent = '0';
-                document.getElementById('statStars').textContent = '0.0';
-                document.getElementById('ratingSummary').textContent = 'Bot API belum bisa dihubungi. Cek alamat API di script web.';
-                console.error(error);
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(59, 130, 246, ${this.opacity})`;
+                ctx.fill();
             }
         }
 
-        async function trackCopy() {
-            try {
-                const stats = await apiRequest('/api/web/copy', {
-                    method: 'POST',
-                    body: JSON.stringify({ script: currentWebMeta.scriptTitle })
+        function initParticles() {
+            const count = Math.min(60, Math.floor(window.innerWidth / 20));
+            particles = [];
+            for (let i = 0; i < count; i++) particles.push(new Particle());
+        }
+        initParticles();
+
+        function drawConnections() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(59, 130, 246, ${0.08 * (1 - dist / 120)})`;
+                        ctx.lineWidth = 0.4;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            drawConnections();
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // ========== SCROLL ANIMATIONS ==========
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) header.classList.add('scrolled');
+            else header.classList.remove('scrolled');
+        });
+
+        function initScrollAnimations() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        // Animate theory cards with stagger
+                        if (entry.target.querySelector('.theory-card')) {
+                            document.querySelectorAll('.theory-card').forEach((card, idx) => {
+                                setTimeout(() => card.classList.add('visible'), idx * 100);
+                            });
+                        }
+                    }
                 });
-                renderStats(stats);
-            } catch (error) {
-                console.error(error);
-            }
+            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+            document.querySelectorAll('.fade-in, .glass-card').forEach(el => observer.observe(el));
         }
 
-        async function trackDownload() {
-            try {
-                const stats = await apiRequest('/api/web/download', {
-                    method: 'POST',
-                    body: JSON.stringify({ file: currentWebMeta.fileName })
+        // ========== MEMBER CAROUSEL ==========
+        function initMemberCarousel() {
+            const carousel = document.querySelector('.group-grid');
+            const cards = Array.from(document.querySelectorAll('.group-grid .member-card'));
+            if (!carousel || cards.length === 0) return;
+
+            const totalCards = cards.length;
+            const autoplayDelay = 4000;
+            const autoplayResumeDelay = 15000;
+            let activeIndex = 0;
+            let dragRatio = 0;
+            let dragDistance = 0;
+            let isPointerDown = false;
+            let isDragging = false;
+            let startX = 0;
+            let startY = 0;
+            let autoplayTimer = null;
+            let resumeTimer = null;
+            let activateObserver = null;
+            let hasEnteredViewport = false;
+
+            function circularOffset(index, currentIndex) {
+                let diff = index - currentIndex;
+                if (diff > totalCards / 2) diff -= totalCards;
+                if (diff < -totalCards / 2) diff += totalCards;
+                return diff;
+            }
+
+            function getCardSpacing() {
+                const cardWidth = cards[0]?.offsetWidth || 240;
+                if (window.innerWidth < 640) return Math.max(116, cardWidth * 0.62);
+                if (window.innerWidth < 980) return Math.max(148, cardWidth * 0.76);
+                return Math.max(182, cardWidth * 0.9);
+            }
+
+            function getDragThreshold() {
+                return Math.max(carousel.offsetWidth * 0.18, 70);
+            }
+
+            function clearAutoplay() {
+                clearTimeout(autoplayTimer);
+                autoplayTimer = null;
+            }
+
+            function clearResumeTimer() {
+                clearTimeout(resumeTimer);
+                resumeTimer = null;
+            }
+
+            function queueAutoplay(delay = autoplayDelay) {
+                clearAutoplay();
+                autoplayTimer = setTimeout(() => {
+                    activeIndex = (activeIndex + 1) % totalCards;
+                    renderCarousel(0, false);
+                    queueAutoplay(autoplayDelay);
+                }, delay);
+            }
+
+            function pauseAutoplay() {
+                clearAutoplay();
+                clearResumeTimer();
+            }
+
+            function resumeAutoplayLater() {
+                clearResumeTimer();
+                resumeTimer = setTimeout(() => {
+                    queueAutoplay(autoplayDelay);
+                }, autoplayResumeDelay);
+            }
+
+            function renderCarousel(offset = 0, isInstant = false) {
+                const spacing = getCardSpacing();
+                cards.forEach((card, index) => {
+                    const relative = circularOffset(index, activeIndex) + offset;
+                    const absRelative = Math.abs(relative);
+                    const clamped = Math.min(absRelative, 2.4);
+                    const scale = Math.max(0.74, 1 - (clamped * 0.14));
+                    const translateX = relative * spacing;
+                    const translateY = clamped === 0 ? 0 : Math.min(20, clamped * 11);
+                    const rotateY = relative * -14;
+                    const opacity = absRelative > 2.2 ? 0 : Math.max(0.2, 1 - (clamped * 0.28));
+                    const blur = Math.max(0, (clamped - 0.25) * 0.9);
+                    const brightness = Math.max(0.68, 1 - (clamped * 0.1));
+                    const zIndex = 100 - Math.round(clamped * 20);
+
+                    card.classList.add('visible');
+                    card.classList.toggle('is-active', absRelative < 0.35);
+                    card.style.transition = isInstant
+                        ? 'none'
+                        : 'transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease, filter 0.45s ease';
+                    card.style.transform = `translate3d(calc(-50% + ${translateX}px), ${translateY}px, 0) scale(${scale}) rotateY(${rotateY}deg)`;
+                    card.style.opacity = `${opacity}`;
+                    card.style.filter = `blur(${blur}px) brightness(${brightness})`;
+                    card.style.zIndex = `${zIndex}`;
+                    card.style.pointerEvents = absRelative > 1.8 ? 'none' : 'auto';
                 });
-                renderStats(stats);
-            } catch (error) {
-                console.error(error);
             }
-        }
 
-        function setRatingButtonsDisabled(disabled) {
-            document.querySelectorAll('.rating-star').forEach((button) => {
-                button.disabled = disabled;
-            });
-        }
-
-        function highlightRating(value) {
-            document.querySelectorAll('.rating-star').forEach((button) => {
-                const buttonValue = Number(button.dataset.rating);
-                button.classList.toggle('active', buttonValue <= value);
-            });
-        }
-
-        function syncRatingButtonsFromStorage() {
-            const saved = Number(localStorage.getItem(LOCAL_RATING_KEY) || 0);
-            if (saved > 0) {
-                highlightRating(saved);
-                setRatingButtonsDisabled(true);
+            function snapToNearest() {
+                const threshold = getDragThreshold();
+                if (dragDistance > threshold) {
+                    activeIndex = (activeIndex - 1 + totalCards) % totalCards;
+                } else if (dragDistance < -threshold) {
+                    activeIndex = (activeIndex + 1) % totalCards;
+                }
+                dragRatio = 0;
+                dragDistance = 0;
+                renderCarousel(0, false);
+                resumeAutoplayLater();
             }
-        }
 
-        function initRatingButtons() {
-            syncRatingButtonsFromStorage();
+            function releasePointer() {
+                if (!isPointerDown) return;
+                isPointerDown = false;
+                carousel.classList.remove('dragging');
+                if (isDragging) {
+                    snapToNearest();
+                } else {
+                    resumeAutoplayLater();
+                }
+                isDragging = false;
+            }
 
-            document.querySelectorAll('.rating-star').forEach((button) => {
-                button.addEventListener('click', async () => {
-                    const existing = Number(localStorage.getItem(LOCAL_RATING_KEY) || 0);
-                    if (existing > 0) {
-                        showToast('Perangkat ini sudah pernah memberi rating.', 'info');
+            carousel.addEventListener('pointerdown', (event) => {
+                if (event.pointerType === 'mouse' && event.button !== 0) return;
+                isPointerDown = true;
+                isDragging = false;
+                startX = event.clientX;
+                startY = event.clientY;
+                dragDistance = 0;
+                dragRatio = 0;
+                pauseAutoplay();
+                carousel.classList.add('dragging');
+            });
+
+            window.addEventListener('pointermove', (event) => {
+                if (!isPointerDown) return;
+                const deltaX = event.clientX - startX;
+                const deltaY = event.clientY - startY;
+
+                if (!isDragging) {
+                    if (Math.abs(deltaY) > 14 && Math.abs(deltaY) > Math.abs(deltaX)) {
+                        releasePointer();
                         return;
                     }
-
-                    const rating = Number(button.dataset.rating);
-                    setRatingButtonsDisabled(true);
-
-                    try {
-                        const stats = await apiRequest('/api/web/rating', {
-                            method: 'POST',
-                            body: JSON.stringify({ rating })
-                        });
-
-                        localStorage.setItem(LOCAL_RATING_KEY, String(rating));
-                        highlightRating(rating);
-                        renderStats(stats);
-                        showToast(`Makasih, rating ${rating}/5 sudah tersimpan.`, 'success');
-                    } catch (error) {
-                        setRatingButtonsDisabled(false);
-                        showToast('Gagal kirim rating ke bot API.', 'info');
-                        console.error(error);
+                    if (Math.abs(deltaX) > 8) {
+                        isDragging = true;
                     }
+                }
+
+                if (!isDragging) return;
+                event.preventDefault();
+                dragDistance = deltaX;
+                dragRatio = deltaX / getDragThreshold();
+                renderCarousel(dragRatio, true);
+            }, { passive: false });
+
+            window.addEventListener('pointerup', releasePointer);
+            window.addEventListener('pointercancel', releasePointer);
+            window.addEventListener('resize', () => renderCarousel(0, true));
+
+            activateObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting || hasEnteredViewport) return;
+                    hasEnteredViewport = true;
+                    renderCarousel(0, false);
+                    queueAutoplay(autoplayDelay);
+                    activateObserver.unobserve(entry.target);
                 });
+            }, { threshold: 0.35 });
+
+            renderCarousel(0, true);
+            activateObserver.observe(document.getElementById('groupSection'));
+        }
+
+        // ========== MODAL FUNCTIONALITY ==========
+        const btnShowAll = document.getElementById('btnShowAll');
+        const groupModal = document.getElementById('groupModal');
+        const modalClose = document.getElementById('modalClose');
+
+        btnShowAll.addEventListener('click', () => {
+            groupModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            // Trigger bounce animation reset
+            document.querySelectorAll('.modal-member').forEach(el => {
+                el.style.animation = 'none';
+                setTimeout(() => el.style.animation = '', 10);
+            });
+        });
+
+        function closeModal() {
+            groupModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        modalClose.addEventListener('click', closeModal);
+        groupModal.addEventListener('click', (e) => {
+            if (e.target === groupModal) closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && groupModal.classList.contains('active')) closeModal();
+        });
+
+        // ========== TOOL CARD REVEAL ==========
+        const toolItems = document.querySelectorAll('.tool-item');
+        const toolCardOverlay = document.getElementById('toolCardOverlay');
+        const toolRevealClose = document.getElementById('toolRevealClose');
+        const toolRevealImage = document.getElementById('toolRevealImage');
+        const toolRevealName = document.getElementById('toolRevealName');
+
+        function openToolCard(toolName, toolImage) {
+            toolRevealName.textContent = toolName;
+            toolRevealImage.src = toolImage;
+            toolRevealImage.alt = toolName;
+            toolCardOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeToolCard() {
+            toolCardOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        toolItems.forEach((item) => {
+            item.addEventListener('click', () => {
+                openToolCard(item.dataset.toolName, item.dataset.toolImage);
+            });
+        });
+
+        toolRevealClose.addEventListener('click', closeToolCard);
+        toolCardOverlay.addEventListener('click', (event) => {
+            if (event.target === toolCardOverlay) closeToolCard();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && toolCardOverlay.classList.contains('active')) closeToolCard();
+        });
+
+        // ========== NAVBAR ACTIVE LINK & SCROLL PROGRESS ==========
+        const scrollProgressBar = document.getElementById('scrollProgressBar');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const trackedSections = [
+            document.getElementById('hero'),
+            document.getElementById('groupSection'),
+            document.getElementById('backgroundSection'),
+            document.getElementById('purposeSection'),
+            document.getElementById('theorySection'),
+            document.getElementById('toolsSection'),
+            document.getElementById('codeSection'),
+            document.getElementById('conclusionSection')
+        ].filter(Boolean);
+
+        function updateScrollProgress() {
+            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            const documentHeight = document.documentElement.scrollHeight;
+            const windowHeight = window.innerHeight;
+            const maxScroll = Math.max(documentHeight - windowHeight, 1);
+            const progress = Math.min((scrollTop / maxScroll) * 100, 100);
+            scrollProgressBar.style.width = `${progress}%`;
+        }
+
+        function setActiveNavLink(id) {
+            navLinks.forEach(link => {
+                const isActive = link.getAttribute('href') === `#${id}`;
+                link.classList.toggle('active', isActive);
             });
         }
 
+        const sectionObserver = new IntersectionObserver((entries) => {
+            const visibleEntry = entries
+                .filter(entry => entry.isIntersecting)
+                .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+            if (visibleEntry) {
+                setActiveNavLink(visibleEntry.target.id);
+            }
+        }, {
+            threshold: [0.2, 0.35, 0.55],
+            rootMargin: '-25% 0px -45% 0px'
+        });
+
+        trackedSections.forEach(section => sectionObserver.observe(section));
+        updateScrollProgress();
+        window.addEventListener('scroll', updateScrollProgress, { passive: true });
+
+        // ========== COPY SCRIPT FUNCTION ==========
         function copyScript() {
             navigator.clipboard.writeText(scriptContent).then(() => {
-                // Update button state
                 const btn = document.getElementById('btnCopy');
                 const copyText = document.getElementById('copyText');
                 const copyIcon = document.getElementById('copyIcon');
-
                 btn.classList.add('copied');
                 copyText.textContent = 'Copied!';
                 copyIcon.innerHTML = '<polyline points="20 6 9 17 4 12" />';
-
-                // Show toast
                 showToast('Berhasil disalin ke clipboard!', 'success');
-                trackCopy();
-
-                // Reset button after 2 seconds
                 setTimeout(() => {
                     btn.classList.remove('copied');
                     copyText.textContent = 'Copy';
                     copyIcon.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>';
                 }, 2000);
             }).catch(() => {
-                // Fallback for older browsers
                 const textarea = document.createElement('textarea');
                 textarea.value = scriptContent;
                 textarea.style.position = 'fixed';
@@ -1678,74 +2221,26 @@ function jsonResponse(payload) { // Kirim response JSON
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
                 showToast('Berhasil disalin ke clipboard!', 'success');
-                trackCopy();
             });
         }
 
-        /* ============================================
-           DOWNLOAD FILE FUNCTION
-           ============================================ */
-        async function downloadFile() {
-            const btn = document.getElementById('btnDownload');
-            const downloadText = document.getElementById('downloadText');
-
-            // Show downloading state
-            btn.classList.add('downloading');
-            downloadText.textContent = 'Downloading...';
-
-            try {
-                const a = document.createElement('a');
-                a.href = getDownloadPath();
-                a.download = currentWebMeta.fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-
-                btn.classList.remove('downloading');
-                downloadText.textContent = 'Download File';
-                showToast('File berhasil diunduh!', 'success');
-                trackDownload();
-            } catch (error) {
-                btn.classList.remove('downloading');
-                downloadText.textContent = 'Download File';
-                showToast('File zip belum ditemukan di folder web/download.', 'info');
-                console.error(error);
-            }
-        }
-
-        /* ============================================
-           TOAST NOTIFICATION SYSTEM
-           ============================================ */
+        // ========== TOAST NOTIFICATION ==========
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
-
-            // Create toast element
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
-
             const icon = type === 'success'
-                ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
-                : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
-
-            toast.innerHTML = `
-                <div class="toast-icon">${icon}</div>
-                <span>${message}</span>
-            `;
-
+                ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+                : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+            toast.innerHTML = `<div class="toast-icon">${icon}</div><span>${message}</span>`;
             container.appendChild(toast);
-
-            // Auto remove after 3 seconds
             setTimeout(() => {
                 toast.classList.add('removing');
-                setTimeout(() => {
-                    container.removeChild(toast);
-                }, 300);
+                setTimeout(() => container.removeChild(toast), 300);
             }, 3000);
         }
 
-        /* ============================================
-           RIPPLE EFFECT ON DOWNLOAD BUTTON
-           ============================================ */
+        // ========== RIPPLE EFFECT ==========
         document.getElementById('btnDownload').addEventListener('click', function(e) {
             const ripple = document.createElement('span');
             ripple.className = 'ripple';
@@ -1758,6 +2253,236 @@ function jsonResponse(payload) { // Kirim response JSON
             setTimeout(() => ripple.remove(), 600);
         });
 
+        // ========== AUDIO SYSTEM ==========
+        const audio = document.getElementById('backsound');
+        const audioControl = document.getElementById('audioControl');
+        const audioPopup = document.getElementById('audioPopup');
+        let audioContext, analyser, dataArray, source, visualizerBars = [];
+        let isAudioInitialized = false;
+        let isMuted = true;
+        let visualizerAnimationId = null;
+        let popupHideTimer = null;
+        let fadeFrameId = null;
+        let smoothedLevels = [];
+        const targetVolume = 0.4;
+        let hasUnlockedAudio = false;
+        let hasAutoEnabledAudio = false;
+        let userStoppedAudio = false;
+        let audioUnlockInProgress = false;
+        let hasShownAudioHint = false;
+
+        audio.muted = true;
+        audio.volume = targetVolume;
+        audio.playsInline = true;
+        audioControl.classList.add('muted');
+
+        // Initialize visualizer bars
+        function initVisualizerBars() {
+            const visualizer = document.getElementById('visualizer');
+            visualizer.innerHTML = '';
+            for (let i = 0; i < 20; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'visualizer-bar';
+                visualizer.appendChild(bar);
+                visualizerBars.push(bar);
+            }
+            smoothedLevels = new Array(visualizerBars.length).fill(5);
+        }
+
+        // Setup Web Audio API
+        function setupAudio() {
+            if (isAudioInitialized) return;
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 128;
+                analyser.smoothingTimeConstant = 0.82;
+                const bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                source = audioContext.createMediaElementSource(audio);
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+                isAudioInitialized = true;
+                animateVisualizer();
+            } catch (e) {
+                console.log('Web Audio API not supported', e);
+            }
+        }
+
+        function attemptMutedAutoplay() {
+            const playPromise = audio.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(() => {});
+            }
+        }
+
+        function showAudioPopup() {
+            clearTimeout(popupHideTimer);
+            audioPopup.classList.add('active');
+        }
+
+        function hideAudioPopup() {
+            clearTimeout(popupHideTimer);
+            audioPopup.classList.remove('active');
+        }
+
+        function animateVolume(toVolume, { muteAtEnd = false } = {}) {
+            cancelAnimationFrame(fadeFrameId);
+            const fromVolume = audio.volume;
+            const startTime = performance.now();
+            const duration = 420;
+
+            function step(now) {
+                const progress = Math.min((now - startTime) / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const nextVolume = fromVolume + ((toVolume - fromVolume) * eased);
+                audio.volume = nextVolume;
+
+                if (progress < 1) {
+                    fadeFrameId = requestAnimationFrame(step);
+                    return;
+                }
+
+                audio.volume = toVolume;
+                if (muteAtEnd) {
+                    audio.muted = true;
+                }
+            }
+
+            fadeFrameId = requestAnimationFrame(step);
+        }
+
+        function syncAudioButtonState() {
+            audioControl.classList.toggle('active', !isMuted);
+            audioControl.classList.toggle('muted', isMuted);
+        }
+
+        async function enableAudioExperience({ showPopup = true } = {}) {
+            setupAudio();
+            if (audioContext && audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+            const playPromise = audio.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                await playPromise;
+            }
+            audio.muted = false;
+            audio.volume = 0;
+            isMuted = false;
+            syncAudioButtonState();
+            animateVolume(targetVolume);
+            if (showPopup) showAudioPopup();
+            return true;
+        }
+
+        function disableAudioExperience() {
+            isMuted = true;
+            userStoppedAudio = true;
+            syncAudioButtonState();
+            animateVolume(0, { muteAtEnd: true });
+            hideAudioPopup();
+        }
+
+        async function unlockAudioFromInteraction(event) {
+            if (hasUnlockedAudio || hasAutoEnabledAudio || userStoppedAudio || audioUnlockInProgress) return;
+            if (event.target && event.target.closest('#audioControl')) return;
+            audioUnlockInProgress = true;
+            try {
+                await enableAudioExperience({ showPopup: true });
+                hasUnlockedAudio = true;
+                hasAutoEnabledAudio = true;
+            } catch (error) {
+                console.log('Automatic audio unlock was blocked, waiting for the next interaction.', error);
+            } finally {
+                audioUnlockInProgress = false;
+            }
+        }
+
+        function showAudioActivationHint() {
+            if (hasShownAudioHint || hasUnlockedAudio || hasAutoEnabledAudio) return;
+            hasShownAudioHint = true;
+            showToast('Klik, tap, atau geser halaman untuk mengaktifkan backsound.', 'info');
+        }
+
+        // Animate visualizer
+        function animateVisualizer() {
+            if (!analyser || visualizerBars.length === 0) return;
+            visualizerAnimationId = requestAnimationFrame(animateVisualizer);
+            analyser.getByteFrequencyData(dataArray);
+
+            const chunkSize = Math.max(1, Math.floor(dataArray.length / visualizerBars.length));
+            visualizerBars.forEach((bar, i) => {
+                let total = 0;
+                const start = i * chunkSize;
+                const end = Math.min(start + chunkSize, dataArray.length);
+
+                for (let j = start; j < end; j++) {
+                    total += dataArray[j];
+                }
+
+                const average = total / Math.max(1, end - start);
+                const energy = average / 255;
+                const baseHeight = isMuted ? 4 : 6;
+                const targetHeight = baseHeight + (energy * 14);
+                smoothedLevels[i] += (targetHeight - smoothedLevels[i]) * 0.22;
+
+                bar.style.height = `${smoothedLevels[i].toFixed(2)}px`;
+                bar.style.opacity = `${Math.min(0.95, 0.28 + (energy * (isMuted ? 0.18 : 0.64)))}`;
+                bar.style.transform = `scaleY(${Math.max(0.85, smoothedLevels[i] / 12)})`;
+            });
+        }
+
+        // Toggle audio
+        audioControl.addEventListener('click', async () => {
+            if (isMuted) {
+                userStoppedAudio = false;
+                try {
+                    await enableAudioExperience({ showPopup: true });
+                    hasUnlockedAudio = true;
+                    hasAutoEnabledAudio = true;
+                } catch (error) {
+                    console.log('Audio could not be enabled yet.', error);
+                }
+            } else {
+                disableAudioExperience();
+            }
+
+            // Add ripple to audio button
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            ripple.style.width = ripple.style.height = '60px';
+            ripple.style.left = '50%';
+            ripple.style.top = '50%';
+            ripple.style.margin = '-30px';
+            audioControl.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+        });
+
+        attemptMutedAutoplay();
+        ['pointerdown', 'touchstart', 'wheel', 'keydown'].forEach((eventName) => {
+            window.addEventListener(eventName, unlockAudioFromInteraction, { passive: true, once: false });
+        });
+        ['mousemove', 'pointermove', 'scroll', 'touchmove'].forEach((eventName) => {
+            window.addEventListener(eventName, showAudioActivationHint, { passive: true, once: false });
+        });
+
+        // ========== SMOOTH SCROLL FOR ANCHOR LINKS ==========
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const headerOffset = document.getElementById('header').offsetHeight + 18;
+                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+                    window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+                }
+            });
+        });
+
+        // ========== PERFORMANCE: REDUCE PARTICLES ON MOBILE ==========
+        if (window.innerWidth < 768) {
+            particles = particles.slice(0, 30);
+        }
     </script>
 </body>
 </html>
